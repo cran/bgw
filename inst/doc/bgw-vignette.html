@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>bgw-vignette</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">bgw-vignette</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bgw)</span></code></pre></div>
+<div id="package-introduction" class="section level2">
+<h2>Package introduction</h2>
+<p>The primary motivation for developing the <em>bgw</em> package is to
+provide fast, efficient, and reliable maximum likelihood estimation
+(MLE) of choice models (Train, 2009) on the R platform. (It can also be
+used for MLE of any model expressed in the form of a user-provided
+vector of likelihoods.)<br />
+We begin with this very brief introduction (for reasons described
+below). Formally, the package solves an unconstrained nonlinear
+optimization problem (minimizing the negative log-likelihood function)
+for a data set of <span class="math inline">\(N\)</span> independent
+observations (indexed by <span class="math inline">\(n\)</span>). In the
+prototypical data generation process, an individual (<span class="math inline">\(n\)</span>) is sampled at random from a
+population, and one or more discrete choices are observed (as well as
+explanatory data). The goal is to estimate a parameter vector (<span class="math inline">\(\beta\)</span>) for a choice model <span class="math inline">\(P(y^c|z,\beta)\)</span> where <span class="math inline">\(y^c\)</span> is an index denoting which discrete
+alternative has been chosen (e.g., from a choice set of size <span class="math inline">\(J\)</span>) and <span class="math inline">\(z\)</span> is a collection of observed explanatory
+variables. For the case where choices from the same individual (<span class="math inline">\(n\)</span>) are observed for <span class="math inline">\(T\)</span> choice scenarios (indexed by <span class="math inline">\(t\)</span>) choice probability for alternative
+<span class="math inline">\(i\)</span> given by the multinomial logit
+(MNL) model is <span class="math display">\[P(i|z_{nt},\beta)=P_{nti}(\beta|z_{nt})=\frac{e^{V_{nti}}}{\sum_{j}e^{V_{ntj}}}\]</span>
+where <span class="math inline">\(V_{ntj}=\beta&#39;z_{ntj}\)</span> is
+a linear-in-parameters function representing the deterministic part of
+individual <span class="math inline">\(n\)</span>’s ‘utility’ for
+alternative <span class="math inline">\(j\)</span> in choice scenario
+<span class="math inline">\(t\)</span>.</p>
+<p>When <span class="math inline">\(T=1\)</span> (one observed choice
+per individual) the likelihood for individual <span class="math inline">\(n\)</span> is just the choice probability given by
+the model. When <span class="math inline">\(T &gt; 1\)</span> the
+likelihood is the joint probability of observing the <span class="math inline">\(T\)</span> choices, given by <span class="math display">\[L_{n}=\prod_{t}P_{nti}\]</span> The negative
+log-likelihood being minimized is given by <span class="math display">\[NLL(\beta)=\sum_{n}log[L_{n}(\beta)]\]</span> The
+function call solving this problem is: bgw_mle &lt;- function(calcR,
+betaStart, calcJ=NULL, bgw_settings=NULL), which is fully documented.
+The required argument calcR is a user-provided function that computes
+the <span class="math inline">\(N\)</span>-vector of likelihoods for a
+given value of <span class="math inline">\(\beta\)</span>. The required
+vector betaStart is a starting value for the iterative search. The
+user-provided (optional) function calcJ computes the Jacobian matrix of
+derivatives of the likelihoods. In the absence of calcR, the Jacobian is
+computed by finite differences. The list bgw_settings is optional, and
+allows the user to change default settings to other values.</p>
+<p>A test example using the MNL model with randomly generated data is
+discussed below. However, proceeding we review important additional
+background as well as technical references.</p>
+</div>
+<div id="bgw-and-apollo" class="section level2">
+<h2>BGW and Apollo</h2>
+<p>A primary motivation was to develop a more efficient maximum
+likelihood estimation function for use in the Apollo choice modelling
+package: see and Hess and Palma (2019). However, we have adopted a
+design whereby the BGW package is wholly independent of Apollo, and can
+be used in a stand-alone fashion. Note also that the BGW Fortran
+subroutines are written to support general statistical estimation for an
+arbitrary objective/criterion function. So, although this version of the
+package is specifically written for MLE, the package may see future
+updates that expand the number of estimation options (for, e.g.,
+nonlinear least squares, generalized method of moments, etc.).</p>
+<p>The example provided below is for a very simple MNL model implemented
+in stand-alone mode. However, our expectation is that most users will
+want to take advantage of the wide variety of choice models already
+implemented and supported by Apollo, for example: MNL, Nested logit
+(NL), cross-nested logit (CNL), exploded logit (EL), ordered logit (OL),
+Integrated Choice and Latent Variable (ICLV), Multiple
+Discrete-Continuous Extreme Value (MDCEV), nested MDCEV (MDCNEV), and
+Decision Field Theory (DFT) models. We acknowledge the helpful and
+fruitful collaboration with the Apollo authors (Stephane Hess and David
+Palma). Under the circumstances, we forgo and additional details related
+to choice modeling per se’, and refer the user to the Apollo references.
+Instructions on how to choose BGW as the estimation option in Apollo
+appears in documentation for Apollo version 0.3.0 and later.</p>
+</div>
+<div id="technical-references" class="section level2">
+<h2>Technical references</h2>
+<p>This package implements an easy-to-use interface from R to the
+Fortran estimation software published in Bunch, Gay and Welsch (1993)
+for the purpose of performing maximimum likelihood estimation as
+described above. However, the underlying code is capable of performing
+any type of statistical estimation defined by minimization of a
+specified objective function (sometimes called “M-estimation”), and
+could be extended in the future to include other estimators (e.g.,
+nonlinear least squares). In fact, the BGW Fortran code is an extension
+and generalization of earlier code developed for the nonlinear
+least-squares problem–see Dennis, Gay, and Welsch. Another reference
+that discusses the more general estimation framework implemented in BGW
+is Gay and Welsch (1988). A reference that provides an introduction to
+optimization-based estimation and inference for choice models, including
+a discussion of the general estimation framework implemented in BGW, is
+Bunch (2014). A journal article to provide a more targeted introduction
+and background on BGW and choice models is in preparation.</p>
+</div>
+<div id="simple-mnl-model-example" class="section level2">
+<h2>Simple MNL model example</h2>
+<p>In this section we provide an example that uses bgw_mle.R in
+stand-alone mode. (It is the same code provided for CRAN testing.) It
+implements a simple MNL model, simulates data, and uses bgw_mle.R to
+estimate the model. (We thank David Palma for providing this example to
+speed things along!) This example uses the bare minimum that is
+required: a function calcR and betaStart. Derivatives are computed using
+finite differences, and the user requests no changes to the default
+values in bgw_settings.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>  <span class="co">#&#39; Simple MNL loglikelihood function assuming linear utility</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">#&#39; @param b Numeric K-long vector of parameters to be estimated.</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">#&#39; @param Y Numeric NxJ matrix. \code{Y[n,j]=1} if alt j selected in obs n.</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">#&#39; @param X List of J NxK matrices with explanatory variables.</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  mnl <span class="ot">&lt;-</span> <span class="cf">function</span>(b, Y, X){</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="do">### Check input</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    test <span class="ot">&lt;-</span> <span class="fu">is.vector</span>(b) <span class="sc">&amp;&amp;</span> <span class="fu">is.matrix</span>(Y) <span class="sc">&amp;&amp;</span> <span class="fu">is.list</span>(X) <span class="sc">&amp;&amp;</span> <span class="fu">all</span>(<span class="fu">sapply</span>(X, is.matrix))</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(<span class="sc">!</span>test) <span class="fu">stop</span>(<span class="st">&quot;Arguments &#39;b&#39;, &#39;Y&#39;, &#39;X&#39; must be a vector, matrix, &quot;</span>,</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>                   <span class="st">&quot;and list of matrices, respectively.&quot;</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    N <span class="ot">&lt;-</span> <span class="fu">nrow</span>(Y)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    K <span class="ot">&lt;-</span> <span class="fu">length</span>(b)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    J <span class="ot">&lt;-</span> <span class="fu">length</span>(X)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    test <span class="ot">&lt;-</span> <span class="fu">all</span>(<span class="fu">dim</span>(Y)<span class="sc">==</span><span class="fu">c</span>(N,J)) <span class="sc">&amp;&amp;</span> <span class="fu">all</span>(<span class="fu">sapply</span>(X, nrow)<span class="sc">==</span>N) <span class="sc">&amp;&amp;</span> <span class="fu">all</span>(<span class="fu">sapply</span>(X, ncol)<span class="sc">==</span>K)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(<span class="sc">!</span>test) <span class="fu">stop</span>(<span class="st">&quot;Dimensions of arguments &#39;b&#39;, &#39;Y&#39;, &#39;X&#39; do not match.&quot;</span>)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="do">### Calculate and return MNL loglikelihood</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    eV <span class="ot">&lt;-</span> <span class="fu">sapply</span>(X, <span class="cf">function</span>(x) <span class="fu">exp</span>(x<span class="sc">%*%</span>b))</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    p  <span class="ot">&lt;-</span> <span class="fu">rowSums</span>(Y<span class="sc">*</span>eV)<span class="sc">/</span><span class="fu">rowSums</span>(eV)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>( p )</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="do">### Generate synthetic data</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  N <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  K <span class="ot">&lt;-</span> <span class="dv">3</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  J <span class="ot">&lt;-</span> <span class="dv">4</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">27</span>)</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  X <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>J) X[[j]] <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">runif</span>(N<span class="sc">*</span>K), <span class="at">nrow=</span>N, <span class="at">ncol=</span>K)</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  b<span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">runif</span>(K, <span class="at">min=</span><span class="sc">-</span><span class="dv">1</span>, <span class="at">max=</span><span class="dv">1</span>), <span class="dv">2</span>)</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>  U <span class="ot">&lt;-</span> <span class="fu">sapply</span>(X, <span class="cf">function</span>(x) x<span class="sc">%*%</span>b <span class="sc">+</span> <span class="sc">-</span><span class="fu">log</span>(<span class="sc">-</span><span class="fu">log</span>(<span class="fu">runif</span>(N))))</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>  Y <span class="ot">&lt;-</span> U<span class="sc">==</span><span class="fu">apply</span>(U, <span class="at">MARGIN=</span><span class="dv">1</span>, <span class="at">FUN=</span>max)</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rm</span>(U, j)</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>  <span class="do">### Create starting values for estimation</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>  b0<span class="ot">&lt;-</span> <span class="fu">setNames</span>(<span class="fu">rep</span>(<span class="dv">0</span>, K), <span class="fu">paste0</span>(<span class="st">&quot;b&quot;</span>, <span class="dv">1</span><span class="sc">:</span>K))</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>  <span class="do">### Estimate using bgw</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>  mnl2 <span class="ot">&lt;-</span> <span class="cf">function</span>(b) <span class="fu">mnl</span>(b, Y, X) <span class="co"># necessary so Y and X do not need to be given</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>  model <span class="ot">&lt;-</span> <span class="fu">bgw_mle</span>(<span class="at">calcR=</span>mnl2, <span class="at">betaStart=</span>b0)</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; BGW is using FD derivatives for model Jacobian. (Caller did not provide derivatives.)</span></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; There are no user-provided BGW settings. </span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; BGW settings have been set to default values...</span></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       XName Initial X(i)</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     1    b1            0</span></span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     2    b2            0</span></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     3    b3            0</span></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     it    nf     F            RELDF    PRELDF    RELDX    MODEL stppar   D*step   NPRELDF</span></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      0     1 1.386294361e+03</span></span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      1     2 1.362272756e+03 1.733e-02 1.574e-02 1.00e+00   G   0.00e+00 7.91e-01 1.574e-02</span></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      2     3 1.361971802e+03 2.209e-04 2.063e-04 5.85e-02   G   0.00e+00 9.32e-02 2.063e-04</span></span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      3     4 1.361970195e+03 1.180e-06 1.182e-06 4.39e-03   S   0.00e+00 7.36e-03 1.182e-06</span></span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      4     5 1.361970195e+03 1.636e-11 1.678e-11 1.48e-05   S   0.00e+00 2.78e-05 1.678e-11</span></span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;        ***** Relative function convergence ***** </span></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;        FUNCTION     1.361970195e+03  RELDX        1.484e-05 </span></span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;        PRELDF       1.678e-11        NPRELDF      1.678e-11 </span></span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;        func. evals  5               grad. evals  6 </span></span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;        vcHessianMethod = Gauss-Newton/BHHH </span></span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;        Estimated upper bound on reciprocal of Euclidean condition number of vcHessian:  0.9465308  </span></span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;        (Condition number = ratio of smallest singular value to largest singular value.)</span></span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;        Value of unit roundoff = machine epsilon for comparison purposes:                2.220446e-16  </span></span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       XName  FinalX(i)   s.e.(i) t.rat.(0)          G(i)</span></span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     1    b1  0.2792773 0.1306183  2.138118  5.341128e-05</span></span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     2    b2 -0.7460936 0.1243862 -5.998204 -5.834577e-07</span></span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     3    b3 -0.3949249 0.1256829 -3.142234  2.600134e-06</span></span></code></pre></div>
+</div>
+<div id="bgw-output" class="section level2">
+<h2>BGW output</h2>
+<p>As shown in the previous example, when called using the default
+values for bgw_settings, bgw_mle.R writes output to the console. It
+first clarifies the status of how derivatives are calculated, and the
+status of bgw_settings (which in this case are just the defaults). The
+starting point for the search (startBeta) is written out, followed by an
+iteration summary.</p>
+<p>The iteration summary shown is the default (long summary line,
+produced when bgw_settings$printLevel = 3L). The first two columns
+contain the iteration number and the cumulative number of objective
+function evaluations, respectively. The third column (F) is the value of
+the objective function (the quantity being minimized) at the current
+iteration. The remaining columns requiring varying levels of technical
+understanding, some of which may require consulting the technical
+references.</p>
+<p>RELDF = The relative function decrease achieved for this iteration
+(versus the previous iteration). PRELDF = The value of RELDF that the
+algorithm predicted. RELDX = The relative change made to the parameter.
+MODEL = A letter (or letters) indicating which quadratic model(s) are
+being used by the trust region algorithm for this iteration. STPPAR =
+The step-length (Levenberg-Marquardt) parameter (<span class="math inline">\(\mu\$) for the trust region step taken.
+(\)</span>$) = 0 means a full quasi-Newton step. (<span class="math inline">\(\mu\$) &gt; 0 means a damped step that lies on the
+boundary of the trust region (which occurs when the full quasi-Newton
+step lies outside the trust region). (\)</span>$) can be negative, but
+only in special cases, such as when the Hessian has a negative
+eigenvalue. D*Step = the Euclidean norm of the step taken. (D denotes a
+scaling factor, which is not currently implemented.) NPRELDF = The value
+of RELDF predicted for a full quasi-Newton step (assuming NPRELDF &gt;
+0). A full quasi-Newton step is actually taken when STPPAR = 0 (see
+above). If NPRELDF &lt; 0, this means that BGW computed the quantity
+-NPRELDF for use in the Singular Convergence test.</p>
+<p>At the conclusion of the search, a message characterizing the outcome
+is written, along with final statistics on the objective function value,
+RELDX, PRELDF, NPRELDF, and the total number of function and graident
+evaluations used. In this example the search was successful (relative
+function convergence). In cases where the search stopped under a
+favorable convergence condition, information about the final solution is
+printed (see below).</p>
+<p>An important advantage of BGW is that it provides a rigorous report
+on conditions under which the algorithm stopped.</p>
+</div>
+<div id="bgw-stopping-conditions" class="section level2">
+<h2>BGW stopping conditions</h2>
+<p>BGW implements an integrated suite of seven stopping rules intended
+to provide a robust characterization of what happened during the search.
+Five of the stopping rules occur when conditions indicate that the
+search should no longer continue. Two of the stopping rules occur when
+the algorithm has exceeded either a maximum number of iterations or a
+maximum number of function evaluations without achieving the conditions
+of the five formal stopping rules. We now focus on the five formal
+stopping rules.</p>
+<p>Two are considered “favorable” outcomes: Relative function
+convergence and X-convergence. (It is possible for both to occur
+simultaneously.) For a stopping rule to be “favorable,” there are two
+prerequisites: (1) a diagnostic test must confirm the adequacy of the
+current quadratic model as an approximation to the objective function,
+and (2) full quasi-Newton steps are being taken. These two things must
+occur if the sequence of iterates is converging to a valid local
+optimum. After that, the question is whether the current iterate is
+“close enough” to a solution from a numerical perspective. Relative
+function convergence occurs when the relative change in the objective
+function is very small. Similarly, X-convergence occurs when the
+relative change in the step size is very small. In each case “very
+small” is defined by a tolerance level such that any potential change
+from continuing the search would be too small to matter.</p>
+<p>A third stopping condition is absolute function convergence, which
+only occurs in very special cases when both the objective function and
+the parameter are getting very close to zero.</p>
+<p>The fourth and fifth stopping conditions are “unfavorable”: singular
+convergence and false convergence. Singular convergence occurs when the
+relative function decreases are getting small, but the iterates do not
+appear to be converging to a unique local minimizer. For example, the
+objective function is so “flat” that there are effectively an infinite
+number of solutions. False convergence occurs when the step sizes are
+getting smaller and smaller, yet none of the other conditions are
+applicable. This can be an indication of numerical difficulties in
+evaluating the objective function or gradient values, due to noise or
+extreme nonlinearity.</p>
+<p>A general discussion of stopping conditions appears in Bunch (2014).
+An updated chapter in the second edition of the <em>Handbook of Choice
+Modelling</em> is in preparation, as is a journal article.</p>
+</div>
+<div id="final-solution" class="section level2">
+<h2>Final solution</h2>
+<p>Because MLE is a statistical estimation problem, it is desirable to
+obtain a variance-covariance matrix and standard errors to perform
+inference. When relative function convergence and/or X-convergence
+occurs, the default is to report the final beta, standard errors,
+t-ratios, and the final gradient. Moreover, the default is to use the
+Gauss-Newton/BHHH Hessian to compute the variance-covariance matrix and
+standard errors. There are options to compute a finite difference
+Hessian instead (using bgw_settings), or to simply not compute these. In
+these cases, information about the vcHessianMethod option (see
+bgw_settings) and any notes relating to its computation is printed out.
+In most cases the vcHessian will be non-singular so that a
+variance-covariance matrix can be computed. However, in some cases there
+are problems with the vcHessian (even if a favorable convergence
+condition is reported). The vcHessian may be non-singular, or there may
+have been problems computing the finite-difference vcHessian (if that is
+what was requested).</p>
+<p>In cases where a variance-covariance matrix has been computed, BGW
+provides an estimated upper bound on the reciprocal of Euclidean
+condition number of the vcHessian. Specifically, the condition number is
+the ratio of the largest eigenvalue to the smallest eigenvalue. When
+this number is very large, then the vcHessian is ill-conditioned. (For
+example, if the smallest eigenvalue is zero, then the condition number
+is infinite, i.e., the vcHessian is singular). The reciprocal of the
+condition number is the ratio of the smallest eigenvalue to the largest
+eigenvalue, with the inverse interpretation (it is a measure of
+“closeness” to singularity). BGW reports an estimated upper bound on
+this value (i.e., a conservative estimate). If the value of this
+condition number estimate is smaller than unit roundoff (also called
+machine epsilon, or ‘machep’), BGW treats the vcHessian as numerically
+rank deficient and reports it to be ‘indefinite.’</p>
+<p>In cases where a variance-covariance matrix is unavailable (for
+whatever reason), BGW provides the final value of beta and the gradient.
+(It is important for the user to understand when the final output is
+produced under favorable conditions.)</p>
+</div>
+<div id="bgw-settings" class="section level2">
+<h2>BGW settings</h2>
+<p>The user has the option to change bgw_settings to non-default values.
+The options appear in the bgw_mle.R documentation. The main options
+involve the level of detail sent to the console (using
+bgw_settings[[“printLevel”]]), the method used to compute the Hessian
+for the variance-covariance matrix (using
+bgw_settings[[“vcHessianMethod”]]), and whether to write the betas at
+each iteration to a file.</p>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<ul>
+<li>Bunch, D. (2014) Numerical methods for optimization-based model
+estimation and inference, <em>Handbook of Choice Modelling</em>, S. Hess
+and A. Daly, eds., Edward Elgar, Cheltenham UK, Chapter 23,
+565-598.<br />
+</li>
+<li>Bunch, D.; Gay, D. and Welsch, R. (1993), Algorithm 717-Subroutines
+for maximum likelihood and quasi-likelihood estimation of parameters in
+nonlinear regression models, <em>ACM Transactions on Mathematical
+Software</em>, <strong>19 (1)</strong>, 109–130,
+&lt;doi.org/10.1145/151271.151279&gt;</li>
+<li>Dennis, J.; Gay D. and Welsch, R. (1981), An adaptive nonlinear
+least-squares algorithm, <em>ACM Transactions on Mathematical
+Software</em>, <strong>7 (3)</strong>, 348–68.</li>
+<li>Gay, D. and Welsch, R. (1988), Maximum likelihood and
+quasi-likelihood for nonlinear exponential family regression models,
+<em>Journal of the American Statistical Society</em>, <strong>83
+(404)</strong>, 990–98.</li>
+<li>Hess, S. and Palma, D. (2019), Apollo: a flexible, powerful and
+customisable freeware package for choice model estimation and
+application, <em>Journal of Choice Modelling</em>, <strong>32</strong>,
+&lt;doi.org/10.1016/j.jocm.2019.100170&gt;</li>
+<li>Train, K. (2009) <em>Discrete Choice Methods with Simulation</em>,
+2nd edition. New York, New York. Cambridge University Press. ISBN
+978-0-521-76655-5</li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

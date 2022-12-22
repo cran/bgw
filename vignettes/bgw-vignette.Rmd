@@ -1,0 +1,145 @@
+---
+title: "bgw-vignette"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{bgw-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(bgw)
+```
+
+## Package introduction
+
+The primary motivation for developing the *bgw* package is to provide fast, efficient, and reliable maximum likelihood estimation (MLE) of choice models (Train, 2009) on the R platform. (It can also be used for MLE of any model expressed in the form of a user-provided vector of likelihoods.)  
+We begin with this very brief introduction (for reasons described below). Formally, the package solves an unconstrained nonlinear optimization problem (minimizing the negative log-likelihood function) for a data set of $N$ independent observations (indexed by $n$). In the prototypical data generation process, an individual ($n$) is sampled at random from a population, and one or more discrete choices are observed (as well as explanatory data). The goal is to estimate a parameter vector ($\beta$) for a choice model $P(y^c|z,\beta)$ where $y^c$ is an index denoting which discrete alternative has been chosen (e.g., from a choice set of size $J$) and $z$ is a collection of observed explanatory variables. For the case where choices from the same individual ($n$) are observed for $T$ choice scenarios (indexed by $t$) choice probability for alternative $i$ given by the multinomial logit (MNL) model is
+$$P(i|z_{nt},\beta)=P_{nti}(\beta|z_{nt})=\frac{e^{V_{nti}}}{\sum_{j}e^{V_{ntj}}}$$
+where $V_{ntj}=\beta'z_{ntj}$ is a linear-in-parameters function representing the deterministic part of individual $n$'s 'utility' for alternative $j$ in choice scenario $t$.  
+
+When $T=1$ (one observed choice per individual) the likelihood for individual $n$ is just the choice probability given by the model. When $T > 1$ the likelihood is the joint probability of observing the $T$ choices, given by 
+$$L_{n}=\prod_{t}P_{nti}$$
+The negative log-likelihood being minimized is given by
+$$NLL(\beta)=\sum_{n}log[L_{n}(\beta)]$$
+The function call solving this problem is:  bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL), which is fully documented. The required argument calcR is a user-provided function that computes the $N$-vector of likelihoods for a given value of $\beta$. The required vector betaStart is a starting value for the iterative search. The user-provided (optional) function calcJ computes the Jacobian matrix of derivatives of the likelihoods. In the absence of calcR, the Jacobian is computed by finite differences. The list bgw_settings is optional, and allows the user to change default settings to other values. 
+
+A test example using the MNL model with randomly generated data is discussed below. However, proceeding we review important additional background as well as technical references. 
+
+## BGW and Apollo
+
+A primary motivation was to develop a more efficient maximum likelihood estimation function for use in the Apollo choice modelling package: see \url{http://www.apollochoicemodelling.com/} and Hess and Palma (2019). However, we have adopted a design whereby the BGW package is wholly independent of Apollo, and can be used in a stand-alone fashion. Note also that the BGW Fortran subroutines are written to support general statistical estimation for an arbitrary objective/criterion function. So, although this version of the package is specifically written for MLE, the package may see future updates that expand the number of estimation options (for, e.g., nonlinear least squares, generalized method of moments, etc.).
+
+The example provided below is for a very simple MNL model implemented in stand-alone mode. However, our expectation is that most users will want to take advantage of the wide variety of choice models already implemented and supported by Apollo, for example: MNL, Nested logit (NL), cross-nested logit (CNL), exploded logit (EL), ordered logit (OL), Integrated Choice and Latent Variable (ICLV), Multiple Discrete-Continuous Extreme Value (MDCEV), nested MDCEV (MDCNEV), and Decision Field Theory (DFT) models. We acknowledge the helpful and fruitful collaboration with the Apollo authors (Stephane Hess and David Palma). Under the circumstances, we forgo and additional details related to choice modeling per se', and refer the user to the Apollo references. Instructions on how to choose BGW as the estimation option in Apollo appears in documentation for Apollo version 0.3.0 and later. 
+
+## Technical references
+
+This package implements an easy-to-use interface from R to the Fortran estimation software published in Bunch, Gay and Welsch (1993) for the purpose of performing maximimum likelihood estimation as described above. However, the underlying code is capable of performing any type of statistical estimation defined by minimization of a specified objective function (sometimes called "M-estimation"), and could be extended in the future to include other estimators (e.g., nonlinear least squares). In fact, the BGW Fortran code is an extension and generalization of earlier code developed for the nonlinear least-squares problem--see Dennis, Gay, and Welsch. Another reference that discusses the more general estimation framework implemented in BGW is Gay and Welsch (1988). A reference that provides an introduction to optimization-based estimation and inference for choice models, including a discussion of the general estimation framework implemented in BGW, is Bunch (2014). A journal article to provide a more targeted introduction and background on BGW and choice models is in preparation. 
+
+## Simple MNL model example
+
+In this section we provide an example that uses bgw_mle.R in stand-alone mode. (It is the same code provided for CRAN testing.) It implements a simple MNL model, simulates data, and uses bgw_mle.R to estimate the model. (We thank David Palma for providing this example to speed things along!) This example uses the bare minimum that is required: a function calcR and betaStart. Derivatives are computed using finite differences, and the user requests no changes to the default values in bgw_settings. 
+
+```{r}
+  #' Simple MNL loglikelihood function assuming linear utility
+  #' @param b Numeric K-long vector of parameters to be estimated.
+  #' @param Y Numeric NxJ matrix. \code{Y[n,j]=1} if alt j selected in obs n.
+  #' @param X List of J NxK matrices with explanatory variables.
+
+  mnl <- function(b, Y, X){
+    ### Check input
+    test <- is.vector(b) && is.matrix(Y) && is.list(X) && all(sapply(X, is.matrix))
+    if(!test) stop("Arguments 'b', 'Y', 'X' must be a vector, matrix, ",
+                   "and list of matrices, respectively.")
+    N <- nrow(Y)
+    K <- length(b)
+    J <- length(X)
+    test <- all(dim(Y)==c(N,J)) && all(sapply(X, nrow)==N) && all(sapply(X, ncol)==K)
+    if(!test) stop("Dimensions of arguments 'b', 'Y', 'X' do not match.")
+
+    ### Calculate and return MNL loglikelihood
+    eV <- sapply(X, function(x) exp(x%*%b))
+    p  <- rowSums(Y*eV)/rowSums(eV)
+    return( p )
+  }
+
+  ### Generate synthetic data
+  N <- 1000
+  K <- 3
+  J <- 4
+  set.seed(27)
+  X <- list()
+  for(j in 1:J) X[[j]] <- matrix(runif(N*K), nrow=N, ncol=K)
+  b<- round(runif(K, min=-1, max=1), 2)
+  U <- sapply(X, function(x) x%*%b + -log(-log(runif(N))))
+  Y <- U==apply(U, MARGIN=1, FUN=max)
+  rm(U, j)
+
+  ### Create starting values for estimation
+  b0<- setNames(rep(0, K), paste0("b", 1:K))
+
+  ### Estimate using bgw
+  mnl2 <- function(b) mnl(b, Y, X) # necessary so Y and X do not need to be given
+  model <- bgw_mle(calcR=mnl2, betaStart=b0)
+```
+
+## BGW output
+
+As shown in the previous example, when called using the default values for bgw_settings, bgw_mle.R writes output to the console. It first clarifies the status of how derivatives are calculated, and the status of bgw_settings (which in this case are just the defaults).  The starting point for the search (startBeta) is written out, followed by an iteration summary. 
+
+The iteration summary shown is the default (long summary line, produced when bgw_settings$printLevel = 3L).  The first two columns contain the iteration number and the cumulative number of objective function evaluations, respectively.  The third column (F) is the value of the objective function (the quantity being minimized) at the current iteration. The remaining columns requiring varying levels of technical understanding, some of which may require consulting the technical references. 
+
+RELDF = The relative function decrease achieved for this iteration (versus the previous iteration). 
+PRELDF = The value of RELDF that the algorithm predicted. 
+RELDX = The relative change made to the parameter. 
+MODEL = A letter (or letters) indicating which quadratic model(s) are being used by the trust region algorithm for this iteration. 
+STPPAR = The step-length (Levenberg-Marquardt) parameter ($\mu\$) for the trust region step taken. ($\mu\$) = 0 means a full quasi-Newton step. 
+($\mu\$) > 0 means a damped step that lies on the boundary of the trust region (which occurs when the full quasi-Newton step lies outside the trust region). ($\mu\$) can be negative, but only in special cases, such as when the Hessian has a negative eigenvalue. 
+D*Step = the Euclidean norm of the step taken. (D denotes a scaling factor, which is not currently implemented.) 
+NPRELDF = The value of RELDF predicted for a full quasi-Newton step (assuming NPRELDF > 0). A full quasi-Newton step is actually taken when STPPAR = 0 (see above). If NPRELDF < 0, this means that BGW computed the quantity -NPRELDF for use in the Singular Convergence test. 
+
+At the conclusion of the search, a message characterizing the outcome is written, along with final statistics on the objective function value, RELDX, PRELDF, NPRELDF, and the total number of function and graident evaluations used. In this example the search was successful (relative function convergence). In cases where the search stopped under a favorable convergence condition, information about the final solution is printed (see below). 
+
+An important advantage of BGW is that it provides a rigorous report on conditions under which the algorithm stopped.  
+
+## BGW stopping conditions
+
+BGW implements an integrated suite of seven stopping rules intended to provide a robust characterization of what happened during the search. Five of the stopping rules occur when conditions indicate that the search should no longer continue. Two of the stopping rules occur when the algorithm has exceeded either a maximum number of iterations or a maximum number of function evaluations without achieving the conditions of the five formal stopping rules. We now focus on the five formal stopping rules.  
+
+Two are considered "favorable" outcomes: Relative function convergence and X-convergence. (It is possible for both to occur simultaneously.)  For a stopping rule to be "favorable," there are two prerequisites: (1) a diagnostic test must confirm the adequacy of the current quadratic model as an approximation to the objective function, and (2) full quasi-Newton steps are being taken. These two things must occur if the sequence of iterates is converging to a valid local optimum. After that, the question is whether the current iterate is "close enough" to a solution from a numerical perspective.  Relative function convergence occurs when the relative change in the objective function is very small.  Similarly, X-convergence occurs when the relative change in the step size is very small. In each case "very small" is defined by a tolerance level such that any potential change from continuing the search would be too small to matter. 
+
+A third stopping condition is absolute function convergence, which only occurs in very special cases when both the objective function and the parameter are getting very close to zero. 
+
+The fourth and fifth stopping conditions are "unfavorable":  singular convergence and false convergence.  Singular convergence occurs when the relative function decreases are getting small, but the iterates do not appear to be converging to a unique local minimizer.  For example, the objective function is so "flat" that there are effectively an infinite number of solutions. False convergence occurs when the step sizes are getting smaller and smaller, yet none of the other conditions are applicable. This can be an indication of numerical difficulties in evaluating the objective function or gradient values, due to noise or extreme nonlinearity.
+
+A general discussion of stopping conditions appears in Bunch (2014). An updated chapter in the second edition of the *Handbook of Choice Modelling* is in preparation, as is a journal article. 
+
+## Final solution 
+
+Because MLE is a statistical estimation problem, it is desirable to obtain a variance-covariance matrix and standard errors to perform inference. When relative function convergence and/or X-convergence occurs, the default is to report the final beta, standard errors, t-ratios, and the final gradient. Moreover, the default is to use the Gauss-Newton/BHHH Hessian to compute the variance-covariance matrix and standard errors. There are options to compute a finite difference Hessian instead (using bgw_settings), or to simply not compute these.  In these cases, information about the vcHessianMethod option (see bgw_settings) and any notes relating to its computation is printed out. In most cases the vcHessian will be non-singular so that a variance-covariance matrix can be computed. However, in some cases there are problems with the vcHessian (even if a favorable convergence condition is reported). The vcHessian may be non-singular, or there may have been problems computing the finite-difference vcHessian (if that is what was requested). 
+
+In cases where a variance-covariance matrix has been computed, BGW provides an estimated upper bound on the reciprocal of Euclidean condition number of the vcHessian.  Specifically, the condition number is the ratio of the largest eigenvalue to the smallest eigenvalue.  When this number is very large, then the vcHessian is ill-conditioned. (For example, if the smallest eigenvalue is zero, then the condition number is infinite, i.e., the vcHessian is singular). The reciprocal of the condition number is the ratio of the smallest eigenvalue to the largest eigenvalue, with the inverse interpretation (it is a measure of "closeness" to singularity). BGW reports an estimated upper bound on this value (i.e., a conservative estimate). If the value of this condition number estimate is smaller than unit roundoff (also called machine epsilon, or 'machep'), BGW treats the vcHessian as numerically rank deficient and reports it 
+to be 'indefinite.' 
+
+In cases where a variance-covariance matrix is unavailable (for whatever reason), BGW provides the final value of beta and the gradient. (It is important for the user to understand when the final output is produced under favorable conditions.)
+
+## BGW settings
+
+The user has the option to change bgw_settings to non-default values. The options appear in the bgw_mle.R documentation. The main options involve the level of detail sent to the console (using bgw_settings[["printLevel"]]), the method used to compute the Hessian for the variance-covariance matrix (using bgw_settings[["vcHessianMethod"]]), and whether to write the betas at each iteration to a file. 
+
+
+## References
+
+* Bunch, D. (2014) Numerical methods for optimization-based model estimation and inference, *Handbook of Choice Modelling*, S. Hess and A. Daly, eds., Edward Elgar, Cheltenham UK, Chapter 23, 565-598.  
+* Bunch, D.; Gay, D. and Welsch, R. (1993), Algorithm 717-Subroutines for maximum likelihood and quasi-likelihood estimation of parameters in nonlinear regression models, *ACM Transactions on Mathematical Software*, **19 (1)**, 109–130, <doi.org/10.1145/151271.151279>
+* Dennis, J.; Gay D. and Welsch, R. (1981), An adaptive nonlinear least-squares algorithm, *ACM Transactions on Mathematical Software*, **7 (3)**, 348–68.
+* Gay, D. and Welsch, R. (1988), Maximum likelihood and quasi-likelihood for nonlinear exponential family regression models, *Journal of the American Statistical Society*, **83 (404)**, 990–98.
+* Hess, S. and Palma, D. (2019), Apollo: a flexible, powerful and customisable freeware package for choice model estimation and application, *Journal of Choice Modelling*, **32**, <doi.org/10.1016/j.jocm.2019.100170>
+* Train, K. (2009) *Discrete Choice Methods with Simulation*, 2nd edition. New York, New York. Cambridge University Press. ISBN 978-0-521-76655-5

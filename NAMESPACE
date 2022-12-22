@@ -1,0 +1,4 @@
+useDynLib(bgw, .registration=TRUE)
+exportPattern("^[[:alpha:]]+")
+importFrom("utils", "write.csv")
+importFrom("utils", "capture.output")
