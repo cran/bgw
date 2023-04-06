@@ -222,13 +222,20 @@ bgw_itsum <- function(d, g, iv, v, x, p, betaIsNamed, betaNames=NULL, i_itsum) {
       #                  'Initial_X_i' = x, 'D_i' = d)
       # colnames(df) <- c('XName','Initial X(i)','D(i)')
       # writeLines(paste0("    ",capture.output(print(df))))
+      # if (betaIsNamed) {
+      #     df <- data.frame('XName' = betaNames,
+      #                  'Initial_X_i' = x)
+      #     colnames(df) <- c('XName','Initial X(i)')
+      # } else {
+      #   df <- data.frame('Initial_X_i' = x)
+      #   colnames(df) <- c('Initial X(i)')
+      # }
       if (betaIsNamed) {
-          df <- data.frame('XName' = betaNames,
-                       'Initial_X_i' = x)
-          colnames(df) <- c('XName','Initial X(i)')
+        df <- data.frame('BetaName' = betaNames,'Initial_X_i' = x, 'D_i' = d)
+        colnames(df) <- c('BetaName','InitialBeta(i)','D(i)')
       } else {
-        df <- data.frame('Initial_X_i' = x)
-        colnames(df) <- c('Initial X(i)')
+        df <- data.frame('Initial_X_i' = x,'D_i' = d)
+        colnames(df) <- c('InitialBeta(i)','D(i)')
       }
       writeLines(paste0("    ",capture.output(print(df))))
       rm(df)
@@ -317,12 +324,12 @@ bgw_itsum <- function(d, g, iv, v, x, p, betaIsNamed, betaNames=NULL, i_itsum) {
       }
       if (betaIsNamed) {
          df <- data.frame('XName' = betaNames,
-                       'FinalX(i)' = x, 's.e.(i)' = se, 't.rat.(0)' = tstat, 'G(i)' = g)
-         colnames(df) <- c('XName','FinalX(i)','s.e.(i)','t.rat.(0)','G(i)')
+                       'FinalX(i)' = x, 's.e.(i)' = se, 't.rat.(0)' = tstat, 'G(i)' = g,'D(i)'=d)
+         colnames(df) <- c('BetaName','FinalBeta(i)','s.e.(i)','t.rat.(0)','G(i)','D(i)')
 
       } else {
-        df <- data.frame('FinalX(i)' = x, 's.e.(i)' = se, 't.rat.(0)' = tstat, 'G(i)' = g)
-        colnames(df) <- c('FinalX(i)','s.e.(i)','t.rat.(0)','G(i)')
+        df <- data.frame('FinalX(i)' = x, 's.e.(i)' = se, 't.rat.(0)' = tstat, 'G(i)' = g,'D(i)'=d)
+        colnames(df) <- c('FinalBeta(i)','s.e.(i)','t.rat.(0)','G(i)','D(i)')
       }
       writeLines(paste0("    ",capture.output(print(df))))
       rm(se,tstat,df)
@@ -361,11 +368,11 @@ bgw_itsum <- function(d, g, iv, v, x, p, betaIsNamed, betaNames=NULL, i_itsum) {
 
       if (betaIsNamed) {
          df <- data.frame('XName' = betaNames,
-                       'FinalX(i)' = x, 'G(i)' = g)
-         colnames(df) <- c('XName','FinalX(i)','G(i)')
+                       'FinalX(i)' = x, 'G(i)' = g,'D(i)'=d)
+         colnames(df) <- c('BetaName','FinalBeta(i)','G(i)','D(i)')
       } else {
-        df <- data.frame('FinalX(i)' = x, 'G(i)' = g)
-        colnames(df) <- c('FinalX(i)','G(i)')
+        df <- data.frame('FinalX(i)' = x, 'G(i)' = g,'D(i)'=d)
+        colnames(df) <- c('FinalBeta(i)','G(i)','D(i)')
       }
       writeLines(paste0("    ",capture.output(print(df))))
       rm(df)

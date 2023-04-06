@@ -1,0 +1,16 @@
+THIS IS THE CHANGELOG OF THE "bgw" PACKAGE
+
+Note that this approach to documenting changes could be changed, depending
+on advice or input from CRAN or others
+
+
+     CHANGES IN VERSION 0.1.1 (2023-04-3)
+
+* The original version did not include options for scaling. (A scale vector
+  of 1's was the hard-wired option.) This version allows for two scaling
+  options: "adaptive" and "none".  (The later corresponds to using a vector
+  1's.)  The default is "adaptive," which is the original default in the
+  Fortran version.  For additional information, see the documentation for
+  "bgw_mle."
+
+

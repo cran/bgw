@@ -1,7 +1,7 @@
 citHeader("To cite bgw estimation algorithms in publications use:")
 
-citEntry(
- entry    = "Article",
+bibentry(
+ bibtype    = "Article",
   title    = "Algorithm 717-Subroutines for maximum likelihood and quasi-likelihood estimation of parameters in nonlinear regression models",
   author   = c(person("David S.","Bunch"),person("David M.","Gay"),person("Roy E.","Welsch")),
   journal  = "ACM Transactions on Mathematical Software",

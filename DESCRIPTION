@@ -1,7 +1,7 @@
 Package: bgw
 Type: Package
 Title: Bunch-Gay-Welsch Statistical Estimation
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person("David S.", "Bunch", email="dsbunch@ucdavis.edu", role=c("aut","cre"),
     comment=c(ORCID="0000-0001-8728-7072")),
@@ -55,6 +55,6 @@ Author: David S. Bunch [aut, cre] (<https://orcid.org/0000-0001-8728-7072>),
   Stephane Hess [ctb],
   David Palma [ctb]
 Config/testthat/edition: 3
-Packaged: 2022-12-21 20:17:32 UTC; dsbunch
+Packaged: 2023-04-06 17:34:25 UTC; dsbunch
 Repository: CRAN
-Date/Publication: 2022-12-22 20:00:08 UTC
+Date/Publication: 2023-04-06 17:50:02 UTC

@@ -51,6 +51,7 @@
 #'                  \item \strong{\code{writeItSummary}}: Logical. If TRUE, iteration information is echoed in the output file "modelName_itSummary.csv". Default is FALSE. [Not currently implemented.]
 #'                  \item \strong{\code{writeIter}}: Logical. If TRUE, parameters and log-likelihood for each iteration are written to "modelName_iterations.csv". Default is FALSE.
 #'                  \item \strong{\code{vcHessianMethod}}: Character. Method for computing the Hessian approximation used for the variance-covariance matrix (VC = H^(-1)). Options are: "none","bhhh","finiteDifferences", or "fdFunction" ("finiteDifferences" automatically uses gradient differences if a gradient is available, otherwise it uses objective function differences. "fdFunction" allows the user to use objective function differences even if a gradient is available). Default is "bhhh."
+#'                  \item \strong{\code{scalingMethod}}: Character. Method used to compute a scaling vector (scaleVec_i, i=1,..,p). Define a matrix D = diag(scaleVec_1,..., scaleVec_p). Values in scaleVec are chosen so that the elements of D*beta are roughly comparable in size. The re-scaled beta is used when computing trial steps using trust regions, and when computing stopping criteria. Options are: "adaptive" and "none."  The "adaptive" method is described in Bunch, Gay, and Welsch (1993), where scaleVec is updated at each iteration. For "none," scaleVec is set to a p-vector of ones for the entire search.  Default is "adaptive."
 #'                }
 #' @return model object of class 'bgw_mle'. Output of a bgw maximum likelihood estimation procedure. A list with the following attributes:
 #' \itemize{
@@ -449,23 +450,25 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
   # iv[dtype_iv] = 0 => do not update d (see dinit discussion below).
   #              = 1 => update d on every iteration
   #              = 2 => update d on first iteration only.
-  # BGW default is iv[dtype_iv] = 1.
+  # BGW default is iv[dtype_iv] = 1, which indicates adaptive scaling.
+  #
   # Remark: Our experience is that many problems are reasonably well
-  # scaled, and that setting the scaling vector d = 1 works well.
+  # scaled, and setting the scaling vector d = 1 often works well.
   # The vector d can be set to 1 by setting
   #     v[dinit_v] = v[38] = 1 and iv[dtype_iv] = 0 (see above).
   # This is our preferred default.
+    # dtype_iv     <- 16
+    # iv[dtype_iv] <- 0
+    # dinit_v      <- 38
+    # v[dinit_v]   <- 1.e0
+    # iv[dtype_iv] <- 1
     dtype_iv     <- 16
-    iv[dtype_iv] <- 0
     dinit_v      <- 38
-    v[dinit_v]   <- 1.e0
-  # Remark: we could allow the user to make different scaling choices,
-  # for now we suppress this option. However, we go ahead and add the
-  # attribute as a placeholder.
-    bgw_settings_default[["scalingMethod"]] <- "NoScaling"
+  #
+    bgw_settings_default[["scalingMethod"]] <- "adaptive"
     # bgw_settings_default[["scalingMethod"]] <- "Fixed scaling p-vector d = 1."
     bgw_settings_type[["scalingMethod"]]           <- "discrete"
-    bgw_settings_validDiscrete[["scalingMethod"]]  <- c("NoScaling")
+    bgw_settings_validDiscrete[["scalingMethod"]]  <- c("adaptive","none")
     bgw_settings_continuousLB[["scalingMethod"]]   <- 0
     bgw_settings_continuousUB[["scalingMethod"]]   <- 0
   #
@@ -611,6 +614,12 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
     lms <- length(modifiedSettings)
     if (lms > 0) {
       for (i in 1:lms) {
+        if (modifiedSettings[[i]] == "scalingMethod") {
+          if (bgw_settings[["scalingMethod"]] == "none") {
+            iv[dtype_iv] <- 0
+            v[dinit_v]   <- 1.e0
+          }
+        }
         if (modifiedSettings[[i]] == "printStartingValues") {
           if (bgw_settings[["printStartingValues"]] == FALSE) {
             x0prt_iv <- 24
