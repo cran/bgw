@@ -3,6 +3,29 @@ THIS IS THE CHANGELOG OF THE "bgw" PACKAGE
 Note that this approach to documenting changes could be changed, depending
 on advice or input from CRAN or others
 
+     CHANGES IN VERSION 0.1.2 (2023-07-10)
+
+* Two main changes in this version are due to (1) a change in CRAN fortran
+  requirements, and (2) the need to add an option for user-provided scaling.
+
+* [1] A change in CRAN requirements was communicated from Prof. Brian Ripley
+  via email (19 June, 2023), which disallows the use of GNU language extensions.
+  The test is based on including the compiler option --std=f2008.  Specifically, the
+  function "isnan" is regarded as a gfortran extension relative to this
+  standard.  Suggestions were to use an old approach (that we originally were
+  using), or to choose something that satisfies the f2003 standard. We have elected
+  to include the ieee arithmetic module and use the function ieee_is_nan(x).
+  If this does not meet the requirement, we will need to make changes and resubmit.
+
+* [2] The option for user-provided scaling has been added, so the options are
+  now: "adaptive", "none", and "userScaling", where the default is
+  "adaptive". For the user to execute this successfully, they must
+  modify two elements of bgw_settings:
+    bgw_settings["scalingMethod"] must be set to "userScaling", and
+    bgw_settings["userScaleVector"] must be set to a correctly specified scaling vector.
+  For additional information, see the documentation for
+  "bgw_mle."
+
 
      CHANGES IN VERSION 0.1.1 (2023-04-3)
 

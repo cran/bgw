@@ -51,7 +51,8 @@
 #'                  \item \strong{\code{writeItSummary}}: Logical. If TRUE, iteration information is echoed in the output file "modelName_itSummary.csv". Default is FALSE. [Not currently implemented.]
 #'                  \item \strong{\code{writeIter}}: Logical. If TRUE, parameters and log-likelihood for each iteration are written to "modelName_iterations.csv". Default is FALSE.
 #'                  \item \strong{\code{vcHessianMethod}}: Character. Method for computing the Hessian approximation used for the variance-covariance matrix (VC = H^(-1)). Options are: "none","bhhh","finiteDifferences", or "fdFunction" ("finiteDifferences" automatically uses gradient differences if a gradient is available, otherwise it uses objective function differences. "fdFunction" allows the user to use objective function differences even if a gradient is available). Default is "bhhh."
-#'                  \item \strong{\code{scalingMethod}}: Character. Method used to compute a scaling vector (scaleVec_i, i=1,..,p). Define a matrix D = diag(scaleVec_1,..., scaleVec_p). Values in scaleVec are chosen so that the elements of D*beta are roughly comparable in size. The re-scaled beta is used when computing trial steps using trust regions, and when computing stopping criteria. Options are: "adaptive" and "none."  The "adaptive" method is described in Bunch, Gay, and Welsch (1993), where scaleVec is updated at each iteration. For "none," scaleVec is set to a p-vector of ones for the entire search.  Default is "adaptive."
+#'                  \item \strong{\code{scalingMethod}}: Character. Method used to compute a scaling vector (scaleVec_i, i=1,..,p). Define a matrix D = diag(scaleVec_1,..., scaleVec_p). When using scaling, values in scaleVec should be chosen so that the elements of D*beta are roughly comparable in size. The re-scaled beta is used when computing trial steps using trust regions, and when computing stopping criteria. Options are: "adaptive," "none," and "userScaling": the default is "adaptive."  For a description of the "adaptive" method, which updates scaleVec at each iteration using information from the model Jacobian, see Bunch, Gay, and Welsch (1993). For "none," scaleVec is set to a p-vector of ones for the entire search. The "userScaling" option indicates that the user is supplying their own (fixed) scaleVec in bgw_settings[["userScaleVector"]] (see next item). Both items must be properly set or an error occurs.
+#'                  \item \strong{\code{userScaleVector}}: Numeric, with dimension p = number of free parameters. Can be either a named or unnamed vector. This is a user-provided scaling vector that is used ONLY in conjunction with the non-default option "userScaling" for bgw_settings[["scalingMethod"]] (see previous item).
 #'                }
 #' @return model object of class 'bgw_mle'. Output of a bgw maximum likelihood estimation procedure. A list with the following attributes:
 #' \itemize{
@@ -349,7 +350,7 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
     bgw_settings_default[["maxIterations"]]        <- 200
     iv[mxiter_iv]                                  <- bgw_settings_default[["maxIterations"]]
     bgw_settings_type[["maxIterations"]]           <- "continuous"
-    bgw_settings_validDiscrete[["maxIterations"]]           <- list()
+    bgw_settings_validDiscrete[["maxIterations"]]  <- list()
     bgw_settings_continuousLB[["maxIterations"]]   <- 1
     bgw_settings_continuousUB[["maxIterations"]]   <- Inf
   #
@@ -387,13 +388,20 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
   # Another potentially important output is a more detailed record of iterates.
   # The writeIter option writes details of each iteration to a file
   # (specifically, the current beta vector and negative log-likelihood).
-    bgw_settings_default[["writeIter"]]        <- FALSE
     bgw_settings_type[["writeIter"]]           <- "discrete"
     bgw_settings_validDiscrete[["writeIter"]]  <- c(FALSE,TRUE)
+    bgw_settings_default[["writeIter"]]        <- FALSE
+    # If true, the file is "modelName_iterations.csv."
     bgw_settings_continuousLB[["writeIter"]]   <- 0
     bgw_settings_continuousUB[["writeIter"]]   <- 0
-  # If true, the file is "modelName_iterations.csv."
-  #
+
+  # Additional option related to writeIter:  overWrite or append?
+    bgw_settings_type[["writeIterMode"]]           <- "discrete"
+    bgw_settings_validDiscrete[["writeIterMode"]]  <- c("overWrite","append")
+    bgw_settings_default[["writeIterMode"]]        <- "overWrite"
+    bgw_settings_continuousLB[["writeIterMode"]]   <- 0
+    bgw_settings_continuousUB[["writeIterMode"]]   <- 0
+
   # Variance-covariance (vc) matrix calculation
   # First, indicate whether or not to compute a vc matrix.
   # Note that BGW has capabilities for both vc matrices and more advanced
@@ -468,9 +476,15 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
     bgw_settings_default[["scalingMethod"]] <- "adaptive"
     # bgw_settings_default[["scalingMethod"]] <- "Fixed scaling p-vector d = 1."
     bgw_settings_type[["scalingMethod"]]           <- "discrete"
-    bgw_settings_validDiscrete[["scalingMethod"]]  <- c("adaptive","none")
+    bgw_settings_validDiscrete[["scalingMethod"]]  <- c("adaptive","none","userScaling")
     bgw_settings_continuousLB[["scalingMethod"]]   <- 0
     bgw_settings_continuousUB[["scalingMethod"]]   <- 0
+    #
+    bgw_settings_default[["userScaleVector"]]        <- "NA"
+    bgw_settings_type[["userScaleVector"]]           <- "NA"
+    bgw_settings_validDiscrete[["userScaleVector"]]  <- list()
+    bgw_settings_continuousLB[["userScaleVector"]]   <- 0
+    bgw_settings_continuousUB[["userScaleVector"]]   <- 0
   #
   # Stopping tolerances.
   # The next parameters involve stopping tolerances for convergence criteria.
@@ -489,7 +503,12 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
   # Other options could be added, but it is possible to write other functions
   # for displaying/summarizing results based on the contents of the model object
   # AFTER the estimation has been completed.
+  # -------------------------------------------------------------------------------------
 
+  # Establishing final bgw_settings
+  # If no bgw_settings are in argument list (or if a passed bgw_settings is NULL)
+  #    Use default values for bgw_settings
+  # Otherwise, bgw_settings are user-provided and must be checked.
   if ( (length(bgw_settings)==0) || (length(bgw_settings)==1 && is.na(bgw_settings)) ||
     (is.null(bgw_settings)) ) {
       bgw_settings <- bgw_settings_default
@@ -509,6 +528,7 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
     check_bgw_settings <- TRUE
   }
 
+  # User has provided bgw_settings that must be checked.
   if (check_bgw_settings) {
     # We need to check for "silent" first, before proceeding.
     if ( !is.null(bgw_settings$printLevel) ) {
@@ -541,19 +561,27 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
       # hasAnalyticGrad = FALSE
       if (!silent) cat("\nBGW is using FD derivatives for model Jacobian. (Caller did not provide derivatives.)\n")
     }
+
     userSettings          <- bgw_settings
     userSettingNames      <- names(bgw_settings)
     numUserSettingNames   <- length(userSettingNames)
+    # A list of validUserSettingNames is created, in the same order as they would be in bgw_settings_default
     validUserSettingNames <- names(bgw_settings_default)[names(bgw_settings_default) %in% userSettingNames]
     numValidUserSettingNames <- length(validUserSettingNames)
     # print(validUserSettingNames)
     # print(numValidUserSettingNames)
+
+    # A completely new version of bgw_settings is created.
+    # It is initialized with bgw_settings_default, and then systematically updated
+    # with valid user-provided settings.
+    # Any valid user-provided settings that are different from default settings are
+    # stored in modifiedSettings.  modifiedSettings require changes to BGW default values.
     bgw_settings <- bgw_settings_default
     if (numValidUserSettingNames > 0) {
       if (printNDS) cat("\nValid user-provided bgw_setting names(s) detected...\n")
       modifiedSettings <- list()
       for (i in validUserSettingNames) {
-        if ( !(bgw_settings[[i]]==userSettings[[i]]) ) {
+        if ( !setequal(bgw_settings[[i]],userSettings[[i]]) ) {
             if (bgw_settings_type[[i]] != "NA") {
             settingOk <- bgw_checkSetting(userSettings[[i]],
                                bgw_settings_type[[i]],bgw_settings_validDiscrete[[i]],
@@ -613,6 +641,29 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
 
     lms <- length(modifiedSettings)
     if (lms > 0) {
+      # First, handle more complex situations.
+      # Attempts to use a user-provided scale vector have potential issues.
+      if (any(modifiedSettings=="scalingMethod") ) {
+        if ( !any(modifiedSettings=="userScaleVector") ) {
+          stop("Error. User has set bgw_settings to userScaling, but no userScaleVector has been provided.")
+        }
+      }
+      if (any(modifiedSettings=="userScaleVector") ) {
+        userScaleVector <- bgw_settings[["userScaleVector"]]
+        if (!is.numeric(userScaleVector)) stop("Error in userScaleVector. Must be a numeric vector.")
+        if (length(userScaleVector)!=p) stop("Error in userScaleVector. It is the wrong length.")
+        if (any(userScaleVector <= 0)) stop("Error in userScaleVector. One or more values is non-positive.")
+        if (bgw_settings[["scalingMethod"]] != "userScaling" ) {
+            stop("\nUser-provided scale vector detected, but user has not set scalingMethod to userScaling \n")
+          # bgw_settings[["scalingMethod"]] <- "userScaling"
+          # cat("\nUser-provided scale vector detected. bgw_settings updated to reflect scalingMethod = userScaling\n")
+        } else {
+        # bgw_settings[["scalingMethod"]] <- "userScaling"
+        iv[dtype_iv] <- 0
+        v[dinit_v]   <- -1.e0
+        }
+      }
+      #
       for (i in 1:lms) {
         if (modifiedSettings[[i]] == "scalingMethod") {
           if (bgw_settings[["scalingMethod"]] == "none") {
@@ -697,17 +748,24 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
   modelName       <- bgw_settings$modelName
   outputDirectory <- bgw_settings$outputDirectory
   writeIter       <- bgw_settings$writeIter
+  writeIterMode   <- bgw_settings$writeIterMode
   writeItSummary  <- bgw_settings$writeItSummary
 
   if (writeIter) {
     # Remove modelName_iterations if it exists
     iterFile <- paste0(outputDirectory,modelName,"_iterations.csv")
     tmp <- iterFile
-    txt <- paste0('\nCould not delete old ', tmp, ' file. New iterations will be written after old ones.')
-    if(file.exists(tmp)) tryCatch(file.remove(tmp), error=function(e) cat(txt))
-    rm(txt)
-    if (!silent) cat("\nIterates will be written to: \n",iterFile)
+    if (writeIterMode == "overWrite") {
+      txt <- paste0('\nCould not delete old ', tmp, ' file. New iterations will be written after old ones.')
+      if(file.exists(tmp)) tryCatch(file.remove(tmp), error=function(e) cat(txt))
+      rm(txt)
+      if (!silent) cat("\nIterates will be written to: \n",iterFile)
+    }
+    if (writeIterMode == "append") {
+      if (!silent) cat("\nIterates will be appended to: \n",iterFile)
+    }
   }
+
   writeItSummary <- FALSE
   if (writeItSummary) {
     itSumFname <- paste0(outputDirectory,modelName,"_itSummary.csv")
@@ -903,6 +961,10 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
     rhoi         <- out[[8]]
     rhor         <- out[[9]]
     i_itsum      <- out[[10]]
+
+    if ((i_itsum == 0) && (bgw_settings[["scalingMethod"]] == "userScaling") ){
+      d_vec <- userScaleVector
+    }
 
     v[d_index_v]     <- d_vec
     v[dr_index_v]    <- dr_vec

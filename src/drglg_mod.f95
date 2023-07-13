@@ -1,5 +1,6 @@
 module drglg_mod
     use, intrinsic :: iso_c_binding
+    use ieee_arithmetic
 
     implicit none
     private
@@ -223,7 +224,7 @@ contains
     !+++++++++++++++++++++++++++++  DECLARATIONS  ++++++++++++++++++++++++++
 
     !  ***  EXTERNAL FUNCTIONS AND SUBROUTINES  ***
-    
+
     ! DSB NOTE: variables for dummy ditsum and dn3rdp
     INTEGER :: inDummy, outDummy
     EXTERNAL dd7up5,divset, dg2lrd, dn3rdp, dd7tpr, dq7adr, dvsum,  &
@@ -318,7 +319,7 @@ contains
     DOUBLE PRECISION, PARAMETER :: zero=0.d+0
     SAVE need1, need2
     DATA need1(1)/1/, need1(2)/0/, need2(1)/2/, need2(2)/0/
-    
+
     ! DSB NOTE:  The following lines are to stop compiler warnings
     w = 1
     g1 = 1
@@ -1240,7 +1241,7 @@ contains
     IF (i == 12 .OR. i == 13) iv(vneed) = iv(vneed) + p*(3*p + 19)/2 + 7
 
     ! DSB NOTE:  dparck is a major source of WRITE statements
-      
+
     i = iv(1) - 2
     IF (i > 12) GO TO 999
     SELECT CASE ( i )
@@ -2248,7 +2249,15 @@ contains
        ! have eliminated it since we believe compilers now
        ! have generic, intrinsic ISNAN functions.
 	   ! PRINT *, NF, F, ISNAN_DP(F)
-       IF (ISNAN(F)) THEN
+       ! July 10, 2023.
+       ! CRAN disallows use of ISNAN (which it says is an GNU extension):
+       ! "isnan is a GNU extension.  There are standard ways to do this as from F2003,
+       ! or you can use if(my_var /= my_var)."
+       ! (This latter approach is what we were originally doing with ISNAN_DP(F).
+       ! The F2003 standard includes ieee_is_nan(x), which we will use (and
+       ! hope this satisfies CRAN requirements).
+       ! IF (ISNAN(F)) THEN
+       IF (ieee_is_nan(F)) THEN
          NF = 0
          RETURN
        ENDIF
