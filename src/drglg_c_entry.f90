@@ -1,13 +1,17 @@
-module drglg_mod
-    use, intrinsic :: iso_c_binding
-    use ieee_arithmetic
-
-    implicit none
-    private
-    ! public :: drglg, divset_f, dparck_m, dg7lit_m, rho
-    public :: drglg, divset_f
-
-contains
+!module drglg_mod
+!    use, intrinsic :: iso_c_binding
+!    use ieee_arithmetic
+!
+!    implicit none
+!    private
+!    ! public :: drglg, divset_f, dparck_m, dg7lit_m, rho
+!    public :: drglg, divset_f
+!
+!    ! Subroutines in this file
+!    ! drglg, divset_f
+!    ! dg7lit_m, dparck_m, rho
+!
+!contains
     SUBROUTINE drglg(d, dr, iv, liv, lv, n, nd, nn, p, ps, &
        lrhoi, lrhor, r, rd, v, x, rhoi, rhor, i_itsum) bind(C, name="drglg_")
 
@@ -21,6 +25,8 @@ contains
     !     1                  RD, RHO, RHOI, RHOR, V, X)
 
     ! *** ITERATION DRIVER FOR GENERALIZED (NON)LINEAR MODELS (ETC.)
+    use, intrinsic :: iso_c_binding
+    implicit none
 
     ! integer(kind = c_int), INTENT(IN OUT)    :: liv
     ! integer(kind = c_int), INTENT(IN OUT)    :: lv
@@ -52,7 +58,7 @@ contains
     !      INTEGER IV(LIV), RHOI(*)
     !      DOUBLE PRECISION D(P), DR(ND,N), R(*), RD(*), RHOR(*),
     !      DIMENSION RD(N, (P-PS)*(P-PS+1)/2 + 1)
-    EXTERNAL rho
+    ! EXTERNAL rho
 
     !--------------------------  PARAMETER USAGE  --------------------------
 
@@ -228,7 +234,8 @@ contains
     ! DSB NOTE: variables for dummy ditsum and dn3rdp
     INTEGER :: inDummy, outDummy
     EXTERNAL dd7up5,divset, dg2lrd, dn3rdp, dd7tpr, dq7adr, dvsum,  &
-    dg7lit_m,ditsum, dl7nvr, dl7itv, dl7ivm,dl7srt, dl7sqr,  &
+    ! dg7lit_m,ditsum, dl7nvr, dl7itv, dl7ivm,dl7srt, dl7sqr,  &
+    ditsum, dl7nvr, dl7itv, dl7ivm,dl7srt, dl7sqr,  &
     dl7svx, dl7svn, dl7tsq,dl7vml,do7prd,dv2axy,dv7cpy, dv7scl, dv7scp
     real(kind = c_double) :: dd7tpr, dl7svx, dl7svn,dvsum
 
@@ -834,6 +841,7 @@ contains
     !  ***  ALG = 1 MEANS REGRESSION CONSTANTS.
     !  ***  ALG = 2 MEANS GENERAL UNCONSTRAINED OPTIMIZATION CONSTANTS.
 
+    use, intrinsic :: iso_c_binding
     ! integer(kind = c_int), INTENT(IN)                  :: alg
     ! integer(kind = c_int), INTENT(OUT)                 :: iv(liv)
     ! integer(kind = c_int), INTENT(IN OUT)              :: liv
@@ -851,7 +859,7 @@ contains
     ! I7MDCN... RETURNS MACHINE-DEPENDENT INTEGER CONSTANTS.
     ! DV7DFL.... PROVIDES DEFAULT VALUES TO V.
 
-    integer(kind = c_int) :: alg1, miv, mv
+    integer(kind = c_int) :: alg1, miv, mv, i_one
     integer(kind = c_int) :: miniv(4), minv(4)
 
     !  ***  SUBSCRIPTS FOR IV  ***
@@ -895,8 +903,9 @@ contains
         minv(1)/98/, minv(2)/71/, minv(3)/101/, minv(4)/85/
 
     !-------------------------------  BODY  --------------------------------
-
-    IF (prunit <= liv) iv(prunit) = i7mdcn(1)
+    i_one = 1
+    ! IF (prunit <= liv) iv(prunit) = i7mdcn(1)
+    IF (prunit <= liv) iv(prunit) = i7mdcn(i_one)
     IF (algsav <= liv) iv(algsav) = alg
     IF (alg < 1 .OR. alg > 4) GO TO 40
     miv = miniv(alg)
@@ -964,8 +973,8 @@ contains
     !  ***  LAST LINE OF DIVSET FOLLOWS  ***
     END SUBROUTINE divset_f
 
-    SUBROUTINE dg7lit_m(d, g, iv, liv, lv, p, ps, v, x, y, i_itsum) &
-                  bind(C, name="dg7lit_m_")
+    SUBROUTINE dg7lit_m(d, g, iv, liv, lv, p, ps, v, x, y, i_itsum)
+
     ! SUBROUTINE dg7lit_m(d, g, iv, liv, lv, p, ps, v, x, y) bind(C, name="dg7lit_m_")
 
     ! Code converted using TO_F90 by Alan Miller
@@ -975,6 +984,9 @@ contains
     !  ***  REGRESSION PROBLEMS (AND OTHERS OF SIMILAR STRUCTURE)     ***
 
     !  ***  PARAMETER DECLARATIONS  ***
+
+    use, intrinsic :: iso_c_binding
+    implicit none
 
     integer(kind = c_int), INTENT(IN)             :: liv
     integer(kind = c_int), INTENT(IN)             :: lv
@@ -1124,7 +1136,8 @@ contains
     LOGICAL :: stopx
     real(kind = c_double) :: dd7tpr, dl7svx, dl7svn, drldst, dr7mdc, dv2nrm
     EXTERNAL da7sst, dd7tpr,df7hes,dg7qts,ditsum, dl7mst,dl7srt,  &
-        dl7sqr, dl7svx, dl7svn, dl7tvm,dl7vml,dparck_m, drldst,  &
+        ! dl7sqr, dl7svx, dl7svn, dl7tvm,dl7vml,dparck_m, drldst,  &
+        dl7sqr, dl7svx, dl7svn, dl7tvm,dl7vml, drldst,  &
         dr7mdc, ds7lup, ds7lvm, stopx,dv2axy,dv7cpy, dv7scp, dv2nrm
 
     ! DA7SST.... ASSESSES CANDIDATE STEP.
@@ -1827,8 +1840,9 @@ contains
     !  ***  LAST LINE OF DG7LIT FOLLOWS  ***
     END SUBROUTINE dg7lit_m
 
-    SUBROUTINE dparck_m(alg, d, iv, liv, lv, n, v) bind(C,name="dparck_m_")
+    SUBROUTINE dparck_m(alg, d, iv, liv, lv, n, v)
 
+    ! bind(C,name="dparck_m_")
     ! Code converted using TO_F90 by Alan Miller
     ! Date: 2021-07-16  Time: 12:07:13
     ! Special code created by David Bunch to replace wr to a Fortran
@@ -1837,6 +1851,9 @@ contains
     !  ***  CHECK ***SOL (VERSION 2.3) PARAMETERS, PRINT CHANGED VALUES  ***
 
     !  ***  ALG = 1 FOR REGRESSION, ALG = 2 FOR GENERAL UNCONSTRAINED OPT.
+
+    use, intrinsic :: iso_c_binding
+    implicit none
 
     integer(kind = c_int), INTENT(IN)             :: alg
     integer(kind = c_int), INTENT(IN)             :: liv
@@ -2153,7 +2170,8 @@ contains
     END SUBROUTINE dparck_m
 
      SUBROUTINE RHO(NEED, F, NOBS, &
-	  &  NF, XN, R, RD, RHOI, RHOR, W) bind(C, name="rho_")
+	  &  NF, XN, R, RD, RHOI, RHOR, W)
+      ! bind(C, name="rho_")
 	  ! FIX ME I need to review what the differences are between
 	  ! this one and the previous one.
 ! Version for use with dglfg_pcm.
@@ -2164,6 +2182,10 @@ contains
 !  USE PCM_DATABASE_GLOBAL_VARS
 ! [See MODULE PCM_DATABASE_GLOBAL_VARS for variable definitions.]
 !
+    use, intrinsic :: iso_c_binding
+    use ieee_arithmetic
+    implicit none
+
     integer(kind = c_int), INTENT (IN)         :: NEED(2)
     integer(kind = c_int), INTENT (IN)         :: NOBS
     integer(kind = c_int), INTENT (IN OUT)     :: NF
@@ -2309,4 +2331,4 @@ contains
 ! *** LAST LINE OF PCMRHO FOLLOWS ***
   ! END SUBROUTINE CM_MLE_RHO_F
   END SUBROUTINE RHO
-end module
+! end module

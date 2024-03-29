@@ -1,7 +1,5 @@
 
-
-
-DOUBLE PRECISION FUNCTION dr7mdc(k)
+  DOUBLE PRECISION FUNCTION dr7mdc(k)
 
 ! Code converted using TO_F90 by Alan Miller
 ! Date: 2021-07-13  Time: 16:54:41
@@ -15,7 +13,7 @@ DOUBLE PRECISION FUNCTION dr7mdc(k)
 ! +++  THAT CORRESPOND TO THE NEW MACHINE.                           +++
 
 
-INTEGER, INTENT(IN)                  :: k
+   INTEGER, INTENT(IN)                  :: k
 
 
 !  ***  THE CONSTANT RETURNED DEPENDS ON K...
@@ -30,13 +28,16 @@ INTEGER, INTENT(IN)                  :: k
 
 ! DSB NOTE: In this version of dmdc, we have replaced hard-coded constants
 ! with calls to internal functions.
-DOUBLE PRECISION :: machep
+   DOUBLE PRECISION :: machep
+
 !  DOUBLE PRECISION :: big, eta, machep
 ! INTEGER :: bigi(2), etai(2), machei(2)
 ! EQUIVALENCE (big,bigi(1)), (eta,etai(1)), (machep,machei(1))
-DOUBLE PRECISION, PARAMETER :: zero=0.d+0
-DOUBLE PRECISION, PARAMETER :: one=1.d+0
-INTRINSIC epsilon, huge, tiny
+
+   DOUBLE PRECISION, PARAMETER :: zero=0.d+0
+   DOUBLE PRECISION, PARAMETER :: one=1.d+0
+   INTRINSIC epsilon, huge, tiny
+
 ! CHARACTER (LEN=132) :: output_string
 
 !  +++ IEEE ARITHMETIC MACHINES IN WHICH THE MOST SIGNIFICANT BYTE
@@ -97,61 +98,61 @@ INTRINSIC epsilon, huge, tiny
 !  +++ END OF PORT +++
 
 !-------------------------------  BODY  --------------------------------
-machep = epsilon(1.d0)
+   machep = epsilon(1.d0)
 ! output_string = ' epsilon = '
 ! CALL dblepr1(output_string,11,machep)
-IF (machep <= zero) THEN
-  WRITE(*,*) 'Edit DR7MDC to activate the appropriate statements'
-  STOP 987
-END IF
-SELECT CASE ( k )
-  CASE (    1)
-    GO TO 10
-  CASE (    2)
-    GO TO  20
-  CASE (    3)
-    GO TO  30
-  CASE (    4)
-    GO TO  40
-  CASE (    5)
-    GO TO  50
-  CASE (    6)
-    GO TO  60
-END SELECT
+  IF (machep <= zero) THEN
+    ! WRITE(*,*) 'Edit DR7MDC to activate the appropriate statements'
+    STOP 987
+  END IF
+
+  SELECT CASE ( k )
+    CASE (    1)
+      GO TO 10
+    CASE (    2)
+      GO TO  20
+    CASE (    3)
+      GO TO  30
+    CASE (    4)
+      GO TO  40
+    CASE (    5)
+      GO TO  50
+    CASE (    6)
+      GO TO  60
+  END SELECT
 
 ! 10   dr7mdc = eta
-10   dr7mdc = tiny(1.d0)
-GO TO 999
+  10   dr7mdc = tiny(1.d0)
+  GO TO 999
 
 ! 20   dr7mdc = SQRT(256.d+0*eta)/16.d+0
-20   dr7mdc = SQRT(256.d+0*tiny(1.d0))/16.d+0
-GO TO 999
+  20   dr7mdc = SQRT(256.d+0*tiny(1.d0))/16.d+0
+  GO TO 999
 
 ! 30   dr7mdc = machep
-30   dr7mdc = epsilon(1.d0)
+  30   dr7mdc = epsilon(1.d0)
 ! output_string = ' dr7mdc = '
 ! CALL dblepr1(output_string,10,dr7mdc)
-GO TO 999
+  GO TO 999
 
 ! 40   dr7mdc = SQRT(machep)
-40   dr7mdc = SQRT(epsilon(1.d0))
-GO TO 999
+  40   dr7mdc = SQRT(epsilon(1.d0))
+  GO TO 999
 
 ! 50   dr7mdc = SQRT(big/256.d+0)*16.d+0
-50   dr7mdc = SQRT(huge(1.d0)/256.d+0)*16.d+0
-GO TO 999
+  50   dr7mdc = SQRT(huge(1.d0)/256.d+0)*16.d+0
+  GO TO 999
 
 ! 60   dr7mdc = big
-60   dr7mdc = huge(1.d0)
+  60   dr7mdc = huge(1.d0)
 
 999  RETURN
 !  ***  LAST LINE OF DR7MDC FOLLOWS  ***
-END FUNCTION dr7mdc
+  END FUNCTION dr7mdc
 
-INTEGER FUNCTION i7mdcn(k)
+  INTEGER FUNCTION i7mdcn(k)
 
-
-INTEGER, INTENT(IN OUT)                  :: k
+  INTEGER, INTENT(IN OUT)                  :: k
 
 
 !  ***  RETURN INTEGER MACHINE-DEPENDENT CONSTANTS  ***
@@ -170,13 +171,13 @@ INTEGER, INTENT(IN OUT)                  :: k
 !  +++  END OF PORT VERSION  +++
 
 !  +++  NON-PORT VERSION FOLLOWS...
-INTEGER :: mdcon(3)
-DATA mdcon(1)/6/, mdcon(2)/8/, mdcon(3)/5/
+  INTEGER :: mdcon(3)
+  DATA mdcon(1)/6/, mdcon(2)/8/, mdcon(3)/5/
 
-i7mdcn = mdcon(k)
+  i7mdcn = mdcon(k)
 !  +++  END OF NON-PORT VERSION  +++
 
 ! 999  RETURN
-RETURN
+  RETURN
 !  ***  LAST LINE OF I7MDCN FOLLOWS  ***
-END FUNCTION i7mdcn
+  END FUNCTION i7mdcn

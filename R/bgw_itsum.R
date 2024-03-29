@@ -250,6 +250,7 @@ bgw_itsum <- function(d, g, iv, v, x, p, betaIsNamed, betaNames=NULL, i_itsum) {
     iv[needhd] <- 0
     iv[prntit] <- 0
     if (ol == 0) return(iv)
+    cat("\n")
     if (ol > 0) cat("    it    nf     F            RELDF    PRELDF    RELDX    MODEL stppar   D*step   NPRELDF")
     if (ol < 0) cat("    it    nf     F            RELDF    PRELDF    RELDX    MODEL stppar")
     # cat("    it    nf     F            RELDF    PRELDF    RELDX    MODEL stppar   D*step   NPRELDF")

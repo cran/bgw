@@ -40,7 +40,7 @@ DOUBLE PRECISION, INTENT(IN OUT)         :: x(p)
 
 !  ***  LOCAL VARIABLES  ***
 
-INTEGER :: gsave1, hes, hmi, hpi, hpm, i, k, kind, l, m, mm1, mm1o2,  &
+INTEGER :: gsave1, flo1, hes, hmi, hpi, hpm, i, k, kind, l, m, mm1, mm1o2,  &
     pp1o2, stpi, stpm, stp0
 DOUBLE PRECISION :: del
 

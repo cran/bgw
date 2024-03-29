@@ -257,7 +257,7 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
     # cat("BGW is using FD derivatives for model Jacobian. (Caller did not provide derivatives.)\n")
   }
 
-  # bgw_setup allocates space for iv and v, and sets up default values
+  # bgw_setup allocates space for iv and v, and sets up their default values
   bgw_setup = bgw_mle_setup(p, n, hasAnalyticGrad)
   iv  <- bgw_setup$iv_r
   liv <- length(iv)
@@ -296,8 +296,8 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
     outlev_iv <- 19
     iv[outlev_iv] <- 1
     # We have some redundancy. "silent" is the same as "printLevel = 0L".
-    silent <- FALSE
-    bgw_settings_default[["silent"]]             <- silent
+    bgw_settings_default[["silent"]]             <- FALSE
+    silent <- bgw_settings_default[["silent"]]
     bgw_settings_type[["silent"]]                <- "discrete"
     bgw_settings_validDiscrete[["silent"]]       <- c(FALSE,TRUE)
     bgw_settings_continuousLB[["silent"]]        <- 0
@@ -309,8 +309,8 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
     bgw_settings_continuousLB[["printLevel"]]    <- 0
     bgw_settings_continuousUB[["printLevel"]]    <- 0
   #
-    printNDS <- TRUE
-    bgw_settings_default[["printNonDefaultSettings"]]         <- printNDS
+    bgw_settings_default[["printNonDefaultSettings"]]         <- TRUE
+    printNDS <- bgw_settings_default[["printNonDefaultSettings"]]
     bgw_settings_type[["printNonDefaultSettings"]]            <- "discrete"
     bgw_settings_validDiscrete[["printNonDefaultSettings"]]   <- c(FALSE,TRUE)
     bgw_settings_continuousLB[["printNonDefaultSettings"]]    <- 0
@@ -327,7 +327,8 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
     bgw_settings_validDiscrete[["printFinalResults"]]   <- c(FALSE,TRUE)
     bgw_settings_continuousLB[["printFinalResults"]]    <- 0
     bgw_settings_continuousUB[["printFinalResults"]]    <- 0
-  # Note that BGW uses multiple flags to control different aspects of this.
+
+  # Note that BGW uses multiple flags to control different aspects of printing results .
   # Some of these could be added to bgw_itsum at a later time. Either way,
   # additional documentation to explain the iteration summary will be required.
   # (DITSUM output can also be written to a file. See below.)
@@ -388,9 +389,9 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
   # Another potentially important output is a more detailed record of iterates.
   # The writeIter option writes details of each iteration to a file
   # (specifically, the current beta vector and negative log-likelihood).
+    bgw_settings_default[["writeIter"]]        <- FALSE
     bgw_settings_type[["writeIter"]]           <- "discrete"
     bgw_settings_validDiscrete[["writeIter"]]  <- c(FALSE,TRUE)
-    bgw_settings_default[["writeIter"]]        <- FALSE
     # If true, the file is "modelName_iterations.csv."
     bgw_settings_continuousLB[["writeIter"]]   <- 0
     bgw_settings_continuousUB[["writeIter"]]   <- 0
@@ -464,17 +465,15 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
   # scaled, and setting the scaling vector d = 1 often works well.
   # The vector d can be set to 1 by setting
   #     v[dinit_v] = v[38] = 1 and iv[dtype_iv] = 0 (see above).
-  # This is our preferred default.
+  # Settings for setting scaling to d = 1.
     # dtype_iv     <- 16
     # iv[dtype_iv] <- 0
     # dinit_v      <- 38
     # v[dinit_v]   <- 1.e0
-    # iv[dtype_iv] <- 1
     dtype_iv     <- 16
     dinit_v      <- 38
-  #
-    bgw_settings_default[["scalingMethod"]] <- "adaptive"
-    # bgw_settings_default[["scalingMethod"]] <- "Fixed scaling p-vector d = 1."
+    # Default settings for adaptive scaling were already set by bgw_mle_setup.
+    bgw_settings_default[["scalingMethod"]]        <- "adaptive"
     bgw_settings_type[["scalingMethod"]]           <- "discrete"
     bgw_settings_validDiscrete[["scalingMethod"]]  <- c("adaptive","none","userScaling")
     bgw_settings_continuousLB[["scalingMethod"]]   <- 0
@@ -506,11 +505,18 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
   # -------------------------------------------------------------------------------------
 
   # Establishing final bgw_settings
+  #
   # If no bgw_settings are in argument list (or if a passed bgw_settings is NULL)
-  #    Use default values for bgw_settings
+  #    => use default values for bgw_settings
   # Otherwise, bgw_settings are user-provided and must be checked.
+    # DSB NOTE:  In reviewing the following, I don't quite understand why
+    # the check on analytic gradients appears in the first part of the following
+    # if-else structure.  Remark:  If there are no provided bgw_settings, it means
+    # that silent will be FALSE and this information can be communicated.
+    #
   if ( (length(bgw_settings)==0) || (length(bgw_settings)==1 && is.na(bgw_settings)) ||
     (is.null(bgw_settings)) ) {
+      # Using default bgw_settings
       bgw_settings <- bgw_settings_default
       if (!is.null(calcJ)) {
         if (is.function(calcJ)) {
@@ -644,7 +650,7 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
       # First, handle more complex situations.
       # Attempts to use a user-provided scale vector have potential issues.
       if (any(modifiedSettings=="scalingMethod") ) {
-        if ( !any(modifiedSettings=="userScaleVector") ) {
+        if ( (bgw_settings[["scalingMethod"]]=="userScaling") && (!any(modifiedSettings=="userScaleVector")) ) {
           stop("Error. User has set bgw_settings to userScaling, but no userScaleVector has been provided.")
         }
       }
@@ -1268,7 +1274,7 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
       # cat('       No variance-covariance matrix computation was requested. \n')
       hessianMethodUsed <- "None"
       vcHessianConditionNumber <- -1
-      cat("\n")
+      if (!silent) cat("\n")
     } else {
     hessianMethodAttempted <- bgw_settings$vcHessianMethod
     hessianMethodUsed      <- "N/A - BHHH Hessian is singular"
@@ -1299,5 +1305,7 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
   # c("\n")
   # print(attributes(model))
   # c("\n")
+  # cat("\n Last line of BGW_mle")
+  # cat("\n")
   return(model)
 }

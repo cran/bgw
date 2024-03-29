@@ -3,6 +3,19 @@ THIS IS THE CHANGELOG OF THE "bgw" PACKAGE
 Note that this approach to documenting changes could be changed, depending
 on advice or input from CRAN or others
 
+    CHANGES IN VERSION 0.1.3 (2024-03-27)
+
+  * [1] CRAN Package Check produced errors for two Linux OS's (apparently due to
+  changes in Fortran compilers).  CRAN Team and Prof. Brian Ripley provided
+  clarification and advice on the issues via email (
+  via email (18 March, 2024).  We made multiple changes to address the list of
+  issues they describe. Whether these suffice awaits repeating the checks at
+  CRAN (since I do not use these Linux platforms).
+
+* [2] Minor changes and bug fixes were made to bgw_mle.R. These changes ensure
+  that 'silent mode' performs properly.  Other changes fix a bug that was
+  preventing the use of the option bgw_settings[["scalingMethod"]] = "none".
+
      CHANGES IN VERSION 0.1.2 (2023-07-10)
 
 * Two main changes in this version are due to (1) a change in CRAN fortran
