@@ -1,7 +1,7 @@
 #' @title bgw_mle
 #'
 #' @description Performs maximum likelihood estimation (MLE) for the user-provided model
-#' defined in \code{bgw_calcR}.
+#' defined in \code{bgw_calcR}. Version 0.1.4.
 #'
 #' @details This function has been written to provide an R-based interface to Fortran estimation software published in
 #' Bunch, Gay and Welsch (1993), "Algorithm 717-Subroutines for Maximum Likelihood and Quasi-Likelihood
@@ -10,7 +10,7 @@
 #' estimation functionality.
 #'
 #' A primary motivation was to develop a more efficient maximum likelihood estimation function for use in
-#' the Apollo choice modelling package: see \url{http://www.apollochoicemodelling.com/}. However, we
+#' the Apollo choice modelling package: see \url{https://www.apollochoicemodelling.com/}. However, we
 #' have adopted a design whereby the BGW package is wholly independent of Apollo, and can be
 #' used in a stand-alone fashion. Note also that the BGW Fortran subroutines are written to support
 #' general statistical estimation for an arbitrary objective/criterion function. So, although this
@@ -21,17 +21,16 @@
 #' Remark: Following the convention in the numerical optimization literature, BGW minimizes the
 #' objective function. That is, bgw_mle minimizes the negative-log-likelihood for the model calcR.
 #'
-## Note:  The following parameters will need to be updated to final versions once we can coordinate
-## with Apollo.
+## Arguments for bgw_mle
 ##
 ## calcR       Function that computes an n-vector of model residuals (R) for a p-vector of parameters beta.
 ##                In this case the residuals are likelihoods (probabilities).
 ##                The first argument of calcR must be the parameter vector beta.
-## calcJ      User-provided function that computes the Jacobian of R. If NULL, finite-difference derivatives are used.
+## calcJ       User-provided function that computes the Jacobian of R. If NULL, finite-difference derivatives are used.
 ##                In matrix form, dim=c(p,n).  However, it could be stored as vector in column-major order.
 ## start      initial vector of starting values for parameters.
 ##
-## bgw_settings control parameters for BGW algorithm.
+## bgw_settings Control parameters for BGW algorithm.
 #'
 #' @param calcR Function that computes an n-vector (R) of model residuals for a p-vector of (numeric) parameters beta (the first argument). In this case the residuals are likelihoods (probabilities). (The beta vector can be named or unnamed.)
 #' @param betaStart Vector of initial starting values for beta. Can be either a named or unnamed vector.
@@ -53,6 +52,7 @@
 #'                  \item \strong{\code{vcHessianMethod}}: Character. Method for computing the Hessian approximation used for the variance-covariance matrix (VC = H^(-1)). Options are: "none","bhhh","finiteDifferences", or "fdFunction" ("finiteDifferences" automatically uses gradient differences if a gradient is available, otherwise it uses objective function differences. "fdFunction" allows the user to use objective function differences even if a gradient is available). Default is "bhhh."
 #'                  \item \strong{\code{scalingMethod}}: Character. Method used to compute a scaling vector (scaleVec_i, i=1,..,p). Define a matrix D = diag(scaleVec_1,..., scaleVec_p). When using scaling, values in scaleVec should be chosen so that the elements of D*beta are roughly comparable in size. The re-scaled beta is used when computing trial steps using trust regions, and when computing stopping criteria. Options are: "adaptive," "none," and "userScaling": the default is "adaptive."  For a description of the "adaptive" method, which updates scaleVec at each iteration using information from the model Jacobian, see Bunch, Gay, and Welsch (1993). For "none," scaleVec is set to a p-vector of ones for the entire search. The "userScaling" option indicates that the user is supplying their own (fixed) scaleVec in bgw_settings[["userScaleVector"]] (see next item). Both items must be properly set or an error occurs.
 #'                  \item \strong{\code{userScaleVector}}: Numeric, with dimension p = number of free parameters. Can be either a named or unnamed vector. This is a user-provided scaling vector that is used ONLY in conjunction with the non-default option "userScaling" for bgw_settings[["scalingMethod"]] (see previous item).
+#'                  \item\strong{\code{userRequestIndLevelGradients}}: Logical. If TRUE, BGW provides an nxp matrix containing individual-level gradients at the final value of beta. Default is FALSE.
 #'                }
 #' @return model object of class 'bgw_mle'. Output of a bgw maximum likelihood estimation procedure. A list with the following attributes:
 #' \itemize{
@@ -78,6 +78,7 @@
 #' \item \strong{\code{vcVec}}: Vector. Lower triangle of variance-covariance matrix stored in vector form (row-major order, if requested and available).
 #' \item \strong{\code{seBGW}}: Vector. Estimated standard errors for parameter estimates (if requested and available).
 #' \item \strong{\code{tstatBGW}}: Vector. Estimated t-statistics (versus 0, if requested and available).
+#' \item\strong{\code{indLevelGradients}}: Matrix. n-by-p matrix containing individual-level gradients computed at the final value of beta (if requested and available).
 #' }
 #' @export
 bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
@@ -116,14 +117,14 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
   bgw_message_table = list()
   bgw_message_table[[1]]  = "       ***** Evaluate function ***** \n"
   bgw_message_table[[2]]  = "       ***** Evaluate gradient ***** \n"
-  bgw_message_table[[3]]  = "       ***** X-convergence ***** \n"
-  bgw_message_table[[4]]  = "       ***** Relative function convergence ***** \n"
-  bgw_message_table[[5]]  = "       ***** X- and relative function convergence ***** \n"
+  bgw_message_table[[3]]  = "       ***** X-convergence (favorable) ***** \n"
+  bgw_message_table[[4]]  = "       ***** Relative function convergence (favorable) ***** \n"
+  bgw_message_table[[5]]  = "       ***** X- and relative function convergence (favorable) ***** \n"
   bgw_message_table[[6]]  = "       ***** Absolute function convergence ***** \n"
-  bgw_message_table[[7]]  = "       ***** Singular convergence ***** \n"
-  bgw_message_table[[8]]  = "       ***** False convergence ***** \n"
-  bgw_message_table[[9]]  = "       ***** Function evaluation limit ***** \n"
-  bgw_message_table[[10]] = "       ***** Iteration limit ***** \n"
+  bgw_message_table[[7]]  = "       ***** Singular convergence (unfavorable) ***** \n"
+  bgw_message_table[[8]]  = "       ***** False convergence (unfavorable) ***** \n"
+  bgw_message_table[[9]]  = "       ***** Function evaluation limit (unfavorable) ***** \n"
+  bgw_message_table[[10]] = "       ***** Iteration limit (unfavorable) ***** \n"
   bgw_message_table[[11]] = "       ***** stopx ***** \n"
   # Note:  The following occurs on entry to ditsum if iv[1] > 62
   # If iv[1] > 61, iv1 = iv[1] - 51
@@ -485,6 +486,12 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
     bgw_settings_continuousLB[["userScaleVector"]]   <- 0
     bgw_settings_continuousUB[["userScaleVector"]]   <- 0
   #
+    bgw_settings_default[["userRequestIndLevelGradients"]]        <- FALSE
+    bgw_settings_type[["userRequestIndLevelGradients"]]           <- "discrete"
+    bgw_settings_validDiscrete[["userRequestIndLevelGradients"]]  <- c(FALSE,TRUE)
+    bgw_settings_continuousLB[["userRequestIndLevelGradients"]]   <- 0
+    bgw_settings_continuousUB[["userRequestIndLevelGradients"]]   <- 0
+  #
   # Stopping tolerances.
   # The next parameters involve stopping tolerances for convergence criteria.
   # For now, we assume these cannot be changed by the user, and default values
@@ -756,6 +763,7 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
   writeIter       <- bgw_settings$writeIter
   writeIterMode   <- bgw_settings$writeIterMode
   writeItSummary  <- bgw_settings$writeItSummary
+  returnIndLevelGradients <- bgw_settings$userRequestIndLevelGradients
 
   if (writeIter) {
     # Remove modelName_iterations if it exists
@@ -1008,7 +1016,8 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
 
     if (iv1 - 2 > 0) {
       computeProb <- 0
-      computeDeriv <- 0
+      # DSB marker
+      computeDeriv <- 1
       estimationFinished <- 1
     }
 
@@ -1081,7 +1090,9 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
         P <- rep(P,p)
         dim(P) <- c(n,p)
         # print(PP)
-        dr_vec <- t(dr_vec)*t(P)
+        if (estimationFinished == 0){
+          dr_vec <- t(dr_vec)*t(P)
+        }
       } else {
         # % 50 in dglf
         # %  ***  COMPUTE FINITE-DIFFERENCE APPROXIMATION TO
@@ -1292,6 +1303,10 @@ bgw_mle <- function(calcR, betaStart, calcJ=NULL, bgw_settings=NULL) {
   model$varcovBGW                <- varcov
   model$seBGW                    <- se
   model$tstatBGW                 <- tstat
+
+  if (returnIndLevelGradients) {
+    model$indLevelGradients <- matrix(dr_vec,nrow=n,ncol=length(beta))
+  }
 
   # model$bgw_iv <- iv
   # model$bgw_v <- v

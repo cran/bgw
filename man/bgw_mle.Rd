@@ -30,6 +30,7 @@ bgw_mle(calcR, betaStart, calcJ = NULL, bgw_settings = NULL)
                  \item \strong{\code{vcHessianMethod}}: Character. Method for computing the Hessian approximation used for the variance-covariance matrix (VC = H^(-1)). Options are: "none","bhhh","finiteDifferences", or "fdFunction" ("finiteDifferences" automatically uses gradient differences if a gradient is available, otherwise it uses objective function differences. "fdFunction" allows the user to use objective function differences even if a gradient is available). Default is "bhhh."
                  \item \strong{\code{scalingMethod}}: Character. Method used to compute a scaling vector (scaleVec_i, i=1,..,p). Define a matrix D = diag(scaleVec_1,..., scaleVec_p). When using scaling, values in scaleVec should be chosen so that the elements of D*beta are roughly comparable in size. The re-scaled beta is used when computing trial steps using trust regions, and when computing stopping criteria. Options are: "adaptive," "none," and "userScaling": the default is "adaptive."  For a description of the "adaptive" method, which updates scaleVec at each iteration using information from the model Jacobian, see Bunch, Gay, and Welsch (1993). For "none," scaleVec is set to a p-vector of ones for the entire search. The "userScaling" option indicates that the user is supplying their own (fixed) scaleVec in bgw_settings[["userScaleVector"]] (see next item). Both items must be properly set or an error occurs.
                  \item \strong{\code{userScaleVector}}: Numeric, with dimension p = number of free parameters. Can be either a named or unnamed vector. This is a user-provided scaling vector that is used ONLY in conjunction with the non-default option "userScaling" for bgw_settings[["scalingMethod"]] (see previous item).
+                 \item\strong{\code{userRequestIndLevelGradients}}: Logical. If TRUE, BGW provides an nxp matrix containing individual-level gradients at the final value of beta. Default is FALSE.
                }}
 }
 \value{
@@ -57,11 +58,12 @@ model object of class 'bgw_mle'. Output of a bgw maximum likelihood estimation p
 \item \strong{\code{vcVec}}: Vector. Lower triangle of variance-covariance matrix stored in vector form (row-major order, if requested and available).
 \item \strong{\code{seBGW}}: Vector. Estimated standard errors for parameter estimates (if requested and available).
 \item \strong{\code{tstatBGW}}: Vector. Estimated t-statistics (versus 0, if requested and available).
+\item\strong{\code{indLevelGradients}}: Matrix. n-by-p matrix containing individual-level gradients computed at the final value of beta (if requested and available).
 }
 }
 \description{
 Performs maximum likelihood estimation (MLE) for the user-provided model
-defined in \code{bgw_calcR}.
+defined in \code{bgw_calcR}. Version 0.1.4.
 }
 \details{
 This function has been written to provide an R-based interface to Fortran estimation software published in
@@ -71,7 +73,7 @@ March 1993, 109-130. The letters BGW will be used in various ways to denote the 
 estimation functionality.
 
 A primary motivation was to develop a more efficient maximum likelihood estimation function for use in
-the Apollo choice modelling package: see \url{http://www.apollochoicemodelling.com/}. However, we
+the Apollo choice modelling package: see \url{https://www.apollochoicemodelling.com/}. However, we
 have adopted a design whereby the BGW package is wholly independent of Apollo, and can be
 used in a stand-alone fashion. Note also that the BGW Fortran subroutines are written to support
 general statistical estimation for an arbitrary objective/criterion function. So, although this

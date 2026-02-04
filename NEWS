@@ -3,6 +3,18 @@ THIS IS THE CHANGELOG OF THE "bgw" PACKAGE
 Note that this approach to documenting changes could be changed, depending
 on advice or input from CRAN or others
 
+    CHANGES IN VERSION 0.1.4 (2026-02-03)
+
+  * [1] An option was added to bgw_settings to allow the user to request that
+  individual-level gradients at the final value of beta be returned with the
+  model. The default is FALSE.
+
+  * [2] Some of the items in the bgw_message_table were modified by
+  appending the terms '(favorable)' or '(unfavorable)' to clarify for the user
+  the nature of the outcome of the search. For example, 'Relative function
+  convergence' is a favorable outcome, and 'Singular convergence' is an
+  unfavorable outcome.
+
     CHANGES IN VERSION 0.1.3 (2024-03-27)
 
   * [1] CRAN Package Check produced errors for two Linux OS's (apparently due to
