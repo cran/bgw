@@ -1,8 +1,8 @@
 #' @title bgw_drglg
 #'
-#' @description An r wrapper to call drglg_c, which in turn is a wrapper
-#'   to call the Fortran subroutine drglg.
-#'   drglg is the BGW iteration driver for performing statistical parameter estimation
+#' @description An r wrapper to call drglg_c, which in turn is a wrapper to call the Fortran
+#' subroutine drglg. drglg is the BGW iteration driver for performing statistical parameter
+#' estimation
 #'
 # Documentation directly from drglg:
 # ! D....... SCALE VECTOR.
@@ -48,6 +48,8 @@
 #' @param i_itsum     Variable for passing itsum instruction back to bgw_mle
 #'
 #' @return out List of return values.
+#' @noRd
+# 7 November 2026: internal function (not exported; no help page is generated).
 # d_vec    <- out[[1]]
 # dr_vec   <- out[[2]]
 # iv       <- out[[3]]
@@ -58,10 +60,10 @@
 # rhoi     <- out[[8]]
 # rhor     <- out[[9]]
 bgw_drglg <- function(d, dr, iv, liv, lv, n, nd, nn, p, ps, r, rd,
-                         v, x, rhoi, rhor, i_itsum) {
-    .Call(drglg_c, as.double(d), as.double(dr), as.integer(iv), as.integer(liv),
-          as.integer(lv), as.integer(n),
-          as.integer(nd), as.integer(nn), as.integer(p), as.integer(ps),
-          as.double(r), as.double(rd), as.double(v), as.double(x),
-          as.integer(rhoi), as.double(rhor), as.integer(i_itsum))
-}
+                      v, x, rhoi, rhor, i_itsum) {
+                        .Call(drglg_c, as.double(d), as.double(dr), as.integer(iv), as.integer(liv),
+                              as.integer(lv), as.integer(n),
+                              as.integer(nd), as.integer(nn), as.integer(p), as.integer(ps),
+                              as.double(r), as.double(rd), as.double(v), as.double(x),
+                              as.integer(rhoi), as.double(rhor), as.integer(i_itsum))
+                      }

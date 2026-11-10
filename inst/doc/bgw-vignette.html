@@ -370,17 +370,18 @@ alternative <span class="math inline">\(j\)</span> in choice scenario
 per individual) the likelihood for individual <span class="math inline">\(n\)</span> is just the choice probability given by
 the model. When <span class="math inline">\(T &gt; 1\)</span> the
 likelihood is the joint probability of observing the <span class="math inline">\(T\)</span> choices, given by <span class="math display">\[L_{n}=\prod_{t}P_{nti}\]</span> The negative
-log-likelihood being minimized is given by <span class="math display">\[NLL(\beta)=\sum_{n}log[L_{n}(\beta)]\]</span> The
-function call solving this problem is: bgw_mle &lt;- function(calcR,
-betaStart, calcJ=NULL, bgw_settings=NULL), which is fully documented.
-The required argument calcR is a user-provided function that computes
-the <span class="math inline">\(N\)</span>-vector of likelihoods for a
-given value of <span class="math inline">\(\beta\)</span>. The required
-vector betaStart is a starting value for the iterative search. The
-user-provided (optional) function calcJ computes the Jacobian matrix of
-derivatives of the likelihoods. In the absence of calcR, the Jacobian is
-computed by finite differences. The list bgw_settings is optional, and
-allows the user to change default settings to other values.</p>
+log-likelihood being minimized is given by <span class="math display">\[NLL(\beta)=-\sum_{n}log[L_{n}(\beta)]\]</span>
+The function call solving this problem is: bgw_mle &lt;- function(calcR,
+betaStart, calcJ=NULL, bgw_settings=NULL, calcJ_type=NULL), which is
+fully documented. The required argument calcR is a user-provided
+function that computes the <span class="math inline">\(N\)</span>-vector
+of likelihoods for a given value of <span class="math inline">\(\beta\)</span>. The required vector betaStart is a
+starting value for the iterative search. The user-provided (optional)
+function calcJ computes the Jacobian matrix of derivatives of the
+likelihoods or their logarithms, as indicated by calcJ_type (see the
+help for bgw_mle). In the absence of calcJ, the Jacobian is computed by
+finite differences. The list bgw_settings is optional, and allows the
+user to change default settings to other values.</p>
 <p>A test example using the MNL model with randomly generated data is
 discussed below. However, proceeding we review important additional
 background as well as technical references.</p>
@@ -406,7 +407,7 @@ Integrated Choice and Latent Variable (ICLV), Multiple
 Discrete-Continuous Extreme Value (MDCEV), nested MDCEV (MDCNEV), and
 Decision Field Theory (DFT) models. We acknowledge the helpful and
 fruitful collaboration with the Apollo authors (Stephane Hess and David
-Palma). Under the circumstances, we forgo and additional details related
+Palma). Under the circumstances, we forgo any additional details related
 to choice modeling per se’, and refer the user to the Apollo references.
 Instructions on how to choose BGW as the estimation option in Apollo
 appears in documentation for Apollo version 0.3.0 and later.</p>
@@ -415,20 +416,20 @@ appears in documentation for Apollo version 0.3.0 and later.</p>
 <h2>Technical references</h2>
 <p>This package implements an easy-to-use interface from R to the
 Fortran estimation software published in Bunch, Gay and Welsch (1993)
-for the purpose of performing maximimum likelihood estimation as
-described above. However, the underlying code is capable of performing
-any type of statistical estimation defined by minimization of a
-specified objective function (sometimes called “M-estimation”), and
-could be extended in the future to include other estimators (e.g.,
-nonlinear least squares). In fact, the BGW Fortran code is an extension
-and generalization of earlier code developed for the nonlinear
-least-squares problem–see Dennis, Gay, and Welsch. Another reference
-that discusses the more general estimation framework implemented in BGW
-is Gay and Welsch (1988). A reference that provides an introduction to
-optimization-based estimation and inference for choice models, including
-a discussion of the general estimation framework implemented in BGW, is
-Bunch (2014). A journal article to provide a more targeted introduction
-and background on BGW and choice models is in preparation.</p>
+for the purpose of performing maximum likelihood estimation as described
+above. However, the underlying code is capable of performing any type of
+statistical estimation defined by minimization of a specified objective
+function (sometimes called “M-estimation”), and could be extended in the
+future to include other estimators (e.g., nonlinear least squares). In
+fact, the BGW Fortran code is an extension and generalization of earlier
+code developed for the nonlinear least-squares problem–see Dennis, Gay,
+and Welsch. Another reference that discusses the more general estimation
+framework implemented in BGW is Gay and Welsch (1988). A reference that
+provides an introduction to optimization-based estimation and inference
+for choice models, including a discussion of the general estimation
+framework implemented in BGW, is Bunch (2014). A journal article to
+provide a more targeted introduction and background on BGW and choice
+models is in preparation.</p>
 </div>
 <div id="simple-mnl-model-example" class="section level2">
 <h2>Simple MNL model example</h2>
@@ -497,23 +498,23 @@ values in bgw_settings.</p>
 <span id="cb2-55"><a href="#cb2-55" tabindex="-1"></a><span class="co">#&gt;      1     4 1.362272756e+03 1.733e-02 1.574e-02 1.00e+00   G   0.00e+00 6.45e+00 1.574e-02</span></span>
 <span id="cb2-56"><a href="#cb2-56" tabindex="-1"></a><span class="co">#&gt;      2     5 1.361971802e+03 2.209e-04 2.063e-04 5.85e-02   G   0.00e+00 7.48e-01 2.063e-04</span></span>
 <span id="cb2-57"><a href="#cb2-57" tabindex="-1"></a><span class="co">#&gt;      3     6 1.361970195e+03 1.180e-06 1.182e-06 4.39e-03   S   0.00e+00 5.90e-02 1.182e-06</span></span>
-<span id="cb2-58"><a href="#cb2-58" tabindex="-1"></a><span class="co">#&gt;      4     7 1.361970195e+03 1.636e-11 1.678e-11 1.42e-05   S   0.00e+00 2.18e-04 1.678e-11</span></span>
+<span id="cb2-58"><a href="#cb2-58" tabindex="-1"></a><span class="co">#&gt;      4     7 1.361970195e+03 1.636e-11 1.675e-11 1.42e-05   S   0.00e+00 2.18e-04 1.675e-11</span></span>
 <span id="cb2-59"><a href="#cb2-59" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb2-60"><a href="#cb2-60" tabindex="-1"></a><span class="co">#&gt;        ***** Relative function convergence ***** </span></span>
 <span id="cb2-61"><a href="#cb2-61" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb2-62"><a href="#cb2-62" tabindex="-1"></a><span class="co">#&gt;        FUNCTION     1.361970195e+03  RELDX        1.422e-05 </span></span>
-<span id="cb2-63"><a href="#cb2-63" tabindex="-1"></a><span class="co">#&gt;        PRELDF       1.678e-11        NPRELDF      1.678e-11 </span></span>
+<span id="cb2-62"><a href="#cb2-62" tabindex="-1"></a><span class="co">#&gt;        FUNCTION     1.361970195e+03  RELDX        1.420e-05 </span></span>
+<span id="cb2-63"><a href="#cb2-63" tabindex="-1"></a><span class="co">#&gt;        PRELDF       1.675e-11        NPRELDF      1.675e-11 </span></span>
 <span id="cb2-64"><a href="#cb2-64" tabindex="-1"></a><span class="co">#&gt;        func. evals  7               grad. evals  6 </span></span>
 <span id="cb2-65"><a href="#cb2-65" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb2-66"><a href="#cb2-66" tabindex="-1"></a><span class="co">#&gt;        vcHessianMethod = Gauss-Newton/BHHH </span></span>
 <span id="cb2-67"><a href="#cb2-67" tabindex="-1"></a><span class="co">#&gt;        Estimated upper bound on reciprocal of Euclidean condition number of vcHessian:  0.9465308  </span></span>
-<span id="cb2-68"><a href="#cb2-68" tabindex="-1"></a><span class="co">#&gt;        (Condition number = ratio of smallest singular value to largest singular value.)</span></span>
+<span id="cb2-68"><a href="#cb2-68" tabindex="-1"></a><span class="co">#&gt;        (Reciprocal condition number = ratio of smallest singular value to largest singular value.)</span></span>
 <span id="cb2-69"><a href="#cb2-69" tabindex="-1"></a><span class="co">#&gt;        Value of unit roundoff = machine epsilon for comparison purposes:                2.220446e-16  </span></span>
 <span id="cb2-70"><a href="#cb2-70" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb2-71"><a href="#cb2-71" tabindex="-1"></a><span class="co">#&gt;       BetaName FinalBeta(i)   s.e.(i) t.rat.(0)          G(i)     D(i)</span></span>
-<span id="cb2-72"><a href="#cb2-72" tabindex="-1"></a><span class="co">#&gt;     1       b1    0.2792773 0.1306183  2.138118  5.341128e-05 7.706525</span></span>
-<span id="cb2-73"><a href="#cb2-73" tabindex="-1"></a><span class="co">#&gt;     2       b2   -0.7460936 0.1243862 -5.998204 -5.834577e-07 8.041956</span></span>
-<span id="cb2-74"><a href="#cb2-74" tabindex="-1"></a><span class="co">#&gt;     3       b3   -0.3949249 0.1256829 -3.142234  2.600134e-06 7.957112</span></span></code></pre></div>
+<span id="cb2-72"><a href="#cb2-72" tabindex="-1"></a><span class="co">#&gt;     1       b1    0.2792773 0.1306183  2.138118  5.246233e-05 7.706525</span></span>
+<span id="cb2-73"><a href="#cb2-73" tabindex="-1"></a><span class="co">#&gt;     2       b2   -0.7460937 0.1243862 -5.998204 -1.460330e-06 8.041956</span></span>
+<span id="cb2-74"><a href="#cb2-74" tabindex="-1"></a><span class="co">#&gt;     3       b3   -0.3949249 0.1256829 -3.142234  1.171011e-06 7.957112</span></span></code></pre></div>
 </div>
 <div id="bgw-output" class="section level2">
 <h2>BGW output</h2>
@@ -521,14 +522,14 @@ values in bgw_settings.</p>
 values for bgw_settings, bgw_mle.R writes output to the console. It
 first clarifies the status of how derivatives are calculated, and the
 status of bgw_settings (which in this case are just the defaults). The
-starting point for the search (startBeta) is written out, followed by an
+starting point for the search (betaStart) is written out, followed by an
 iteration summary.</p>
 <p>The iteration summary shown is the default (long summary line,
 produced when bgw_settings$printLevel = 3L). The first two columns
 contain the iteration number and the cumulative number of objective
 function evaluations, respectively. The third column (F) is the value of
 the objective function (the quantity being minimized) at the current
-iteration. The remaining columns requiring varying levels of technical
+iteration. The remaining columns require varying levels of technical
 understanding, some of which may require consulting the technical
 references.</p>
 <p>RELDF = The relative function decrease achieved for this iteration
@@ -536,20 +537,20 @@ references.</p>
 algorithm predicted. RELDX = The relative change made to the parameter.
 MODEL = A letter (or letters) indicating which quadratic model(s) are
 being used by the trust region algorithm for this iteration. STPPAR =
-The step-length (Levenberg-Marquardt) parameter (<span class="math inline">\(\mu\$) for the trust region step taken.
-(\)</span>$) = 0 means a full quasi-Newton step. (<span class="math inline">\(\mu\$) &gt; 0 means a damped step that lies on the
-boundary of the trust region (which occurs when the full quasi-Newton
-step lies outside the trust region). (\)</span>$) can be negative, but
-only in special cases, such as when the Hessian has a negative
-eigenvalue. D*Step = the Euclidean norm of the step taken. (D denotes a
-scaling factor, which is not currently implemented.) NPRELDF = The value
-of RELDF predicted for a full quasi-Newton step (assuming NPRELDF &gt;
-0). A full quasi-Newton step is actually taken when STPPAR = 0 (see
-above). If NPRELDF &lt; 0, this means that BGW computed the quantity
--NPRELDF for use in the Singular Convergence test.</p>
+The step-length (Levenberg-Marquardt) parameter (<span class="math inline">\(\mu\)</span>) for the trust region step taken.
+(<span class="math inline">\(\mu\)</span>) = 0 means a full quasi-Newton
+step. (<span class="math inline">\(\mu\)</span>) &gt; 0 means a damped
+step that lies on the boundary of the trust region (which occurs when
+the full quasi-Newton step lies outside the trust region). (<span class="math inline">\(\mu\)</span>) can be negative, but only in special
+cases, such as when the Hessian has a negative eigenvalue. D*Step = the
+Euclidean norm of the step taken. (D denotes a scaling factor.) NPRELDF
+= The value of RELDF predicted for a full quasi-Newton step (assuming
+NPRELDF &gt; 0). A full quasi-Newton step is actually taken when STPPAR
+= 0 (see above). If NPRELDF &lt; 0, this means that BGW computed the
+quantity -NPRELDF for use in the Singular Convergence test.</p>
 <p>At the conclusion of the search, a message characterizing the outcome
 is written, along with final statistics on the objective function value,
-RELDX, PRELDF, NPRELDF, and the total number of function and graident
+RELDX, PRELDF, NPRELDF, and the total number of function and gradient
 evaluations used. In this example the search was successful (relative
 function convergence). In cases where the search stopped under a
 favorable convergence condition, information about the final solution is
@@ -613,9 +614,9 @@ bgw_settings) and any notes relating to its computation is printed out.
 In most cases the vcHessian will be non-singular so that a
 variance-covariance matrix can be computed. However, in some cases there
 are problems with the vcHessian (even if a favorable convergence
-condition is reported). The vcHessian may be non-singular, or there may
-have been problems computing the finite-difference vcHessian (if that is
-what was requested).</p>
+condition is reported). The vcHessian may be singular, or there may have
+been problems computing the finite-difference vcHessian (if that is what
+was requested).</p>
 <p>In cases where a variance-covariance matrix has been computed, BGW
 provides an estimated upper bound on the reciprocal of Euclidean
 condition number of the vcHessian. Specifically, the condition number is
@@ -627,9 +628,9 @@ condition number is the ratio of the smallest eigenvalue to the largest
 eigenvalue, with the inverse interpretation (it is a measure of
 “closeness” to singularity). BGW reports an estimated upper bound on
 this value (i.e., a conservative estimate). If the value of this
-condition number estimate is smaller than unit roundoff (also called
-machine epsilon, or ‘machep’), BGW treats the vcHessian as numerically
-rank deficient and reports it to be ‘indefinite.’</p>
+reciprocal condition number estimate is smaller than unit roundoff (also
+called machine epsilon, or ‘machep’), BGW treats the vcHessian as
+numerically rank deficient and reports it to be ‘indefinite.’</p>
 <p>In cases where a variance-covariance matrix is unavailable (for
 whatever reason), BGW provides the final value of beta and the gradient.
 (It is important for the user to understand when the final output is
@@ -643,7 +644,10 @@ involve the level of detail sent to the console (using
 bgw_settings[[“printLevel”]]), the method used to compute the Hessian
 for the variance-covariance matrix (using
 bgw_settings[[“vcHessianMethod”]]), and whether to write the betas at
-each iteration to a file.</p>
+each iteration to a file (writeIter). The gradient and the scaling
+vector at each iteration can also be written to files (writeIterGradient
+and writeIterScaleVec), and the option userRequestModelObject returns a
+model object at betaStart without performing an estimation.</p>
 </div>
 <div id="references" class="section level2">
 <h2>References</h2>
@@ -663,7 +667,7 @@ least-squares algorithm, <em>ACM Transactions on Mathematical
 Software</em>, <strong>7 (3)</strong>, 348–68.</li>
 <li>Gay, D. and Welsch, R. (1988), Maximum likelihood and
 quasi-likelihood for nonlinear exponential family regression models,
-<em>Journal of the American Statistical Society</em>, <strong>83
+<em>Journal of the American Statistical Association</em>, <strong>83
 (404)</strong>, 990–98.</li>
 <li>Hess, S. and Palma, D. (2019), Apollo: a flexible, powerful and
 customisable freeware package for choice model estimation and

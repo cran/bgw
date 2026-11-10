@@ -158,3 +158,57 @@ test_that("Using settings to turn off VC calculation for mnl", {
 
   expect_equal(model$maximum, -1361.97, tolerance = 0.01)
 })
+
+# ---- The R / Fortran interface ------------------------------------------------
+
+set.seed(1)
+int_n  <- 300
+int_z1 <- rnorm(int_n)
+int_z2 <- rnorm(int_n)
+int_y  <- rbinom(int_n, 1, plogis(0.8*int_z1 - 0.5*int_z2))
+int_R  <- function(b) {
+  b <- unname(b)
+  p <- plogis(b[1]*int_z1 + b[2]*int_z2)
+  ifelse(int_y == 1, p, 1 - p)
+}
+int_J  <- function(b) {
+  b <- unname(b)
+  p <- plogis(b[1]*int_z1 + b[2]*int_z2)
+  cbind(int_z1*(int_y - p), int_z2*(int_y - p))
+}
+
+test_that("the Fortran does not overwrite an unnamed betaStart when calcJ is supplied", {
+  b <- c(0.1, 0.2)
+  m <- bgw_mle(int_R, b, calcJ = int_J, bgw_settings = list(silent = TRUE),
+               calcJ_type = "log_probability")
+  expect_identical(b, c(0.1, 0.2))
+  expect_identical(m$betaStart, c(0.1, 0.2))
+  expect_false(isTRUE(all.equal(unname(m$estimate), c(0.1, 0.2))))
+})
+
+test_that("each beta given to calcR is left unchanged by later iterations", {
+  seen <- list()
+  remember <- function(b) {
+    seen[[length(seen) + 1]] <<- b
+    int_R(b)
+  }
+  m <- bgw_mle(remember, c(0.1, 0.2), calcJ = int_J, bgw_settings = list(silent = TRUE),
+               calcJ_type = "log_probability")
+  expect_identical(seen[[1]], c(0.1, 0.2))
+  expect_gt(length(unique(seen)), 1)
+})
+
+test_that("limits too large for a Fortran integer are rejected", {
+  for (limit in c(1e10, Inf)) {
+    expect_error(bgw_mle(int_R, c(a = 0.1, b = 0.2),
+                         bgw_settings = list(silent = TRUE, maxIterations = limit)),
+                 "not valid")
+    expect_error(bgw_mle(int_R, c(a = 0.1, b = 0.2),
+                         bgw_settings = list(silent = TRUE, maxFunctionEvals = limit)),
+                 "not valid")
+  }
+})
+
+test_that("a model too large for a Fortran integer is rejected with a clear message", {
+  expect_error(bgw:::bgw_mle_setup(2, 1e10, TRUE), "too large for BGW")
+})

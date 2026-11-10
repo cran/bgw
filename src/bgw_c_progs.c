@@ -41,6 +41,19 @@ extern SEXP drglg_c (SEXP d, SEXP dr, SEXP iv, SEXP liv, SEXP lv, \
                      SEXP i_itsum) {
   const int lrhoi = LENGTH(rhoi);
   const int lrhor  = LENGTH(rhor);
+  /* The Fortran overwrites these arrays in place, and as.double() and as.integer() do not copy a
+     vector that already has the right type. Work on private copies, so that the Fortran cannot
+     change any other R object sharing that memory, such as the caller's starting values. */
+  d      = PROTECT(duplicate(d));
+  dr     = PROTECT(duplicate(dr));
+  iv     = PROTECT(duplicate(iv));
+  r      = PROTECT(duplicate(r));
+  rd     = PROTECT(duplicate(rd));
+  v      = PROTECT(duplicate(v));
+  x      = PROTECT(duplicate(x));
+  rhoi   = PROTECT(duplicate(rhoi));
+  rhor   = PROTECT(duplicate(rhor));
+  i_itsum = PROTECT(duplicate(i_itsum));
   /*  The big question is:  How many things need to be returned?*/
   /* SEXP ret_iv = PROTECT(allocVector(INTSXP, liv));
   SEXP ret_v  = PROTECT(allocVector(REALSXP, lv));*/
@@ -63,7 +76,7 @@ extern SEXP drglg_c (SEXP d, SEXP dr, SEXP iv, SEXP liv, SEXP lv, \
   SET_VECTOR_ELT(out,7,rhoi);
   SET_VECTOR_ELT(out,8,rhor);
   SET_VECTOR_ELT(out,9,i_itsum);
-  UNPROTECT(1);
+  UNPROTECT(11);
   return(out);
 }
 

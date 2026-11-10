@@ -4,83 +4,217 @@
 \alias{bgw_mle}
 \title{bgw_mle}
 \usage{
-bgw_mle(calcR, betaStart, calcJ = NULL, bgw_settings = NULL)
+bgw_mle(calcR, betaStart, calcJ = NULL, bgw_settings = NULL, calcJ_type = NULL)
 }
 \arguments{
-\item{calcR}{Function that computes an n-vector (R) of model residuals for a p-vector of (numeric) parameters beta (the first argument). In this case the residuals are likelihoods (probabilities). (The beta vector can be named or unnamed.)}
+\item{calcR}{Function that computes an n-vector (R) of model residuals for a p-vector of
+(numeric) parameters beta (the first argument). (The beta vector can be named or unnamed.)
+Because bgw_mle performs maximum likelihood estimation (MLE), R_i is the likelihood
+(probability) of the ith observation, and the estimate is the value of beta that minimizes the
+negative log-likelihood NLL = -Sum_i [log(R_i)].}
 
-\item{betaStart}{Vector of initial starting values for beta. Can be either a named or unnamed vector.}
+\item{betaStart}{Vector of initial starting values for beta. Can be either a named or unnamed
+vector.}
 
-\item{calcJ}{Function that computes the matrix of partial derivatives of R wrt beta (a.k.a. the Jacobian). If NULL, finite-difference derivatives are used. In matrix form, dim=c(p,n).  However, it could be stored as a vector in column-major order.}
+\item{calcJ}{Optional function that computes analytic derivative (Jacobian) information for the
+n-vector R, with beta as its first argument, as for calcR. If calcJ is NULL (the default),
+estimation uses finite-difference derivatives. Starting with version 0.1.5, the Jacobian can be
+supplied in several forms (see Details), so whenever calcJ is supplied, calcJ_type should be
+supplied as well.}
 
-\item{bgw_settings}{List. Contains control parameters for BGW estimation code. All parameters have default values, so user input is entirely optional.
+\item{bgw_settings}{List. Contains control parameters for BGW estimation code. All parameters
+  have default values, so user input is entirely optional.
                \itemize{
-                 \item \strong{\code{printLevel}}: Integer (0-3). Controls the level of detail for iteration information written to the console during estimation.  0 = silent, 1 = print starting values and final solution only, 2 = short line summary, 3 = long line summary (see documentation). Default = 3.
-                 \item \strong{\code{silent}}: Logical. Suppresses all output. Default = FALSE. (Currently redundant with printLevel = 0.)
+                 \item \strong{\code{printLevel}}: Integer (0-3). Controls the level of detail
+                   for iteration information written to the console during estimation. 0 =
+                   silent, 1 = print starting values and final solution only, 2 = short line
+                   summary, 3 = long line summary (see documentation). Default = 3.
+                 \item \strong{\code{silent}}: Logical. Suppresses all output. Default = FALSE.
+                   (Currently redundant with printLevel = 0.)
 
-                 \item \strong{\code{printNonDefaultSettings}}: Logical. Echos any user-provided bgw_settings. Default = TRUE.
-                 \item \strong{\code{printStartingValues}}: Logical. Default = TRUE. Print starting values for beta.
-                 \item \strong{\code{printFinalResults}}:  Logical. Default = TRUE. Print final status of estimation (convergence/error message), summary statistics (negative log-likelihood, iterations, function evals, etc.), beta, gradient, and (if available) estimated standard errors and t-ratios. (See vcHessianMethod for variance-covariance specification.)
-                 \item \strong{\code{maxIterations}}: Numeric. Maximum number of iterations for the estimation. BGW default is 150.
-                 \item \strong{\code{maxFunctionEvals}}: Numeric. Maximum number of objective function evaluations. BGW default is 200.
-                 \item \strong{\code{modelName}}: Character. Used to create names for requested output files. Default is "bgw_mle_model."
-                 \item \strong{\code{outputDirectory}}: Character. Name of sub-directory (~/outputDirectory) to write output files. Default is NULL (current directory).
-                 \item \strong{\code{writeItSummary}}: Logical. If TRUE, iteration information is echoed in the output file "modelName_itSummary.csv". Default is FALSE. [Not currently implemented.]
-                 \item \strong{\code{writeIter}}: Logical. If TRUE, parameters and log-likelihood for each iteration are written to "modelName_iterations.csv". Default is FALSE.
-                 \item \strong{\code{vcHessianMethod}}: Character. Method for computing the Hessian approximation used for the variance-covariance matrix (VC = H^(-1)). Options are: "none","bhhh","finiteDifferences", or "fdFunction" ("finiteDifferences" automatically uses gradient differences if a gradient is available, otherwise it uses objective function differences. "fdFunction" allows the user to use objective function differences even if a gradient is available). Default is "bhhh."
-                 \item \strong{\code{scalingMethod}}: Character. Method used to compute a scaling vector (scaleVec_i, i=1,..,p). Define a matrix D = diag(scaleVec_1,..., scaleVec_p). When using scaling, values in scaleVec should be chosen so that the elements of D*beta are roughly comparable in size. The re-scaled beta is used when computing trial steps using trust regions, and when computing stopping criteria. Options are: "adaptive," "none," and "userScaling": the default is "adaptive."  For a description of the "adaptive" method, which updates scaleVec at each iteration using information from the model Jacobian, see Bunch, Gay, and Welsch (1993). For "none," scaleVec is set to a p-vector of ones for the entire search. The "userScaling" option indicates that the user is supplying their own (fixed) scaleVec in bgw_settings[["userScaleVector"]] (see next item). Both items must be properly set or an error occurs.
-                 \item \strong{\code{userScaleVector}}: Numeric, with dimension p = number of free parameters. Can be either a named or unnamed vector. This is a user-provided scaling vector that is used ONLY in conjunction with the non-default option "userScaling" for bgw_settings[["scalingMethod"]] (see previous item).
-                 \item\strong{\code{userRequestIndLevelGradients}}: Logical. If TRUE, BGW provides an nxp matrix containing individual-level gradients at the final value of beta. Default is FALSE.
+                 \item \strong{\code{printNonDefaultSettings}}: Logical. Echos any user-provided
+                   bgw_settings. Default = TRUE.
+                 \item \strong{\code{printStartingValues}}: Logical. Default = TRUE. Print
+                   starting values for beta.
+                 \item \strong{\code{printFinalResults}}: Logical. Default = TRUE. Print final
+                   status of estimation (convergence/error message), summary statistics (negative
+                   log-likelihood, iterations, function evals, etc.), beta, gradient, and (if
+                   available) estimated standard errors and t-ratios. (See vcHessianMethod for
+                   variance-covariance specification.)
+                 \item \strong{\code{maxIterations}}: Numeric. Maximum number of iterations for
+                   the estimation. Default is 200. A value of 0 requests a model object at
+                   betaStart without estimation (see userRequestModelObject).
+                 \item \strong{\code{maxFunctionEvals}}: Numeric. Maximum number of objective
+                   function evaluations. Default is 300.
+                 \item \strong{\code{modelName}}: Character. Used to create names for requested
+                   output files. Default is "bgw_mle_model."
+                 \item \strong{\code{outputDirectory}}: Character. Directory in which to write
+                   output files. It is created if it does not exist. Default is the current
+                   working directory.
+                 \item \strong{\code{writeItSummary}}: Logical. If TRUE, iteration information is
+                   echoed in the output file "modelName_itSummary.csv". Default is FALSE. [Not
+                   currently implemented.]
+                 \item \strong{\code{writeIter}}: Logical. If TRUE, parameters and log-likelihood
+                   for each iteration are written to "modelName_iterations.csv". The columns are
+                   the parameter names (or beta1, beta2, ... if betaStart has no names), logLike,
+                   Iteration and ItType. An existing file is replaced, unless writeIterMode is
+                   "append". Default is FALSE.
+                 \item \strong{\code{writeIterMode}}: Character. "overWrite" (the default)
+                   replaces any existing iteration files; "append" adds to them. Applies to
+                   writeIter, writeIterGradient and writeIterScaleVec.
+                 \item \strong{\code{writeIterGradient}}: Logical. If TRUE, the gradient of the
+                   log-likelihood at each iteration is written to "modelName_gradients.csv", with
+                   the same columns as for writeIter. Its sign is opposite to that of the
+                   returned gradient, which is the gradient of the negative log-likelihood.
+                   Default is FALSE.
+                 \item \strong{\code{writeIterScaleVec}}: Logical. If TRUE, the scale vector at
+                   each iteration is written to "modelName_scaleVecs.csv", with the same columns
+                   as for writeIter. Default is FALSE.
+                 \item \strong{\code{vcHessianMethod}}: Character. Method for computing the
+                   Hessian approximation used for the variance-covariance matrix (VC = H^(-1)).
+                   Options are: "none","bhhh","finiteDifferences", or "fdFunction"
+                   ("finiteDifferences" automatically uses gradient differences if a gradient is
+                   available, otherwise it uses objective function differences. "fdFunction"
+                   allows the user to use objective function differences even if a gradient is
+                   available). Default is "bhhh."
+                 \item \strong{\code{scalingMethod}}: Character. Method used to compute a scaling
+                   vector (scaleVec_i, i=1,..,p). Define a matrix D = diag(scaleVec_1,...,
+                   scaleVec_p). When using scaling, values in scaleVec should be chosen so that
+                   the elements of D*beta are roughly comparable in size. The re-scaled beta is
+                   used when computing trial steps using trust regions, and when computing
+                   stopping criteria. Options are: "adaptive," "none," and "userScaling": the
+                   default is "adaptive." For a description of the "adaptive" method, which
+                   updates scaleVec at each iteration using information from the model Jacobian,
+                   see Bunch, Gay, and Welsch (1993). For "none," scaleVec is set to a p-vector
+                   of ones for the entire search. The "userScaling" option indicates that the
+                   user is supplying their own (fixed) scaleVec in
+                   bgw_settings[["userScaleVector"]] (see next item). Both items must be properly
+                   set or an error occurs.
+                 \item \strong{\code{userScaleVector}}: Numeric, with dimension p = number of
+                   free parameters. Can be either a named or unnamed vector. This is a
+                   user-provided scaling vector that is used ONLY in conjunction with the
+                   non-default option "userScaling" for bgw_settings[["scalingMethod"]] (see
+                   previous item).
+                 \item\strong{\code{userRequestIndLevelGradients}}: Logical. If TRUE, BGW returns
+                   an n x p matrix containing individual-level gradients at the final value of
+                   beta. Specifically, if the log-likelihood = sum_i[log(R_i)], row i of the
+                   matrix is d log(R_i)/d beta. Available with both analytic (calcJ) and
+                   finite-difference derivatives. Default is FALSE.
+                 \item\strong{\code{userRequestModelObject}}: Logical. If TRUE, no estimation is
+                   performed. BGW returns a model object evaluated at betaStart, with code 20,
+                   iterations equal to 0, and a variance-covariance matrix based on the BHHH
+                   matrix (NULL if that matrix is singular). Requires vcHessianMethod = "bhhh"
+                   or "none". Default is FALSE.
                }}
+
+\item{calcJ_type}{Character. Should be supplied whenever calcJ is supplied: \code{"probability"}
+if calcJ returns derivatives of R_i, or \code{"log_probability"} if it returns derivatives of
+log(R_i). See Details. If omitted, \code{"log_probability"} is assumed (see "Version 0.1.4 and
+earlier" under Details). Ignored if calcJ is NULL.}
 }
 \value{
-model object of class 'bgw_mle'. Output of a bgw maximum likelihood estimation procedure. A list with the following attributes:
+model object of class 'bgw_mle'. Output of a bgw maximum likelihood estimation procedure.
+  A list with the following attributes:
 \itemize{
 \item \strong{\code{betaStart}}: Vector of initial starting values.
-\item \strong{\code{bgw_settings}}: List. The same as the input argument.
-\item \strong{\code{hasAnalyticGrad}}: Logical. Indicates in an analytical gradient calculation was used. If the user has not provided a calcJ function (see input parameter), it is set to FALSE.
+\item \strong{\code{bgw_settings}}: List. The final settings used, including any defaults.
+\item \strong{\code{hasAnalyticGrad}}: Logical. Indicates if an analytical gradient calculation
+  was used. If the user has not provided a calcJ function (see input parameter), it is set to
+  FALSE.
 \item \strong{\code{numParams}}: Numeric. Number of model parameters used in calcR.
-\item \strong{\code{numResids}}: Numeric. Number of independent observations (model residuals) in data set = dimension of calcR output.
-\item \strong{\code{code}}: Numeric. Numeric return code from BGW.
-\item \strong{\code{message}}: Character. Message statement characterizing termination of MLE search.
-\item \strong{\code{betaStop}}: Vector. Value of parameter vector at conclusion of MLE search. See message to determine if beta is a valid estimate.
+\item \strong{\code{numResids}}: Numeric. Number of independent observations (model residuals) in
+  data set = dimension of calcR output.
+\item \strong{\code{code}}: Numeric. Numeric return code from BGW. Code 20 means that a model
+  object at betaStart was requested, and no estimation was performed. Codes above 62 report a
+  failure: 63, 64 and 66 at the start, and 65 when the gradient could not be computed. If code
+  65 occurs after the start, the last iterate at which the gradient could be computed is
+  returned, with its log-likelihood, gradient and scale vector.
+\item \strong{\code{message}}: Character. Message statement characterizing termination of MLE
+  search.
+\item \strong{\code{betaStop}}: Vector. Value of parameter vector at conclusion of MLE search.
+  See message to determine if beta is a valid estimate.
 \item \strong{\code{finalLL}}: Numeric. Value of log-likelihood at betaStop.
-\item \strong{\code{iterations}}: Numeric. Number of iterations used in MLE search. In BGW, this is the same as the number of gradient evaluations.
-\item \strong{\code{functionEvals}}: Numeric. Number of function evaluations used in MLE search. (This excludes function evaluations used by any finite-difference calculations for the gradient and/or the vcHessian.
-\item \strong{\code{gradient}}: Vector. The gradient evaluated at betaStop.
-\item \strong{\code{scaleVec}}: Vector. The scaling vector at the conclusion of the MLE search. Note: In the current version, this will be a p-vector of 1's (used throughout the search). In future versions, additional scaling options may be implemented.
-\item \strong{\code{estimate}}: Vector. MLE parameter vector obtained by BGW. The same as betaStop if a valid convergence condition is achieved. Null otherwise.
-\item \strong{\code{maximum}}: Numeric. Final log-likelihood value for a (successful) MLE search.
-\item \strong{\code{hessianMethodAttempted}}: String. Requested method for computing vcHessian (from bgw_settings).
-\item \strong{\code{hessianMethodUsed}}: String. Method actually used for computing vcHessian (if vcHessian was requested, and if the computation was successful. If not, a message indicating 'no request' or 'singular vcHessian' is provided.)
-\item \strong{\code{vcHessianConditionNumber}}: Numeric. Estimated upper bound on reciprocal of Euclidean condition number of vcHessian (if available). Set to -1 if unavailable.
-\item \strong{\code{varcovBGW}}: Matrix. p-by-p matrix containing estimate of the variance-covariance matrix (if requested and available).
-\item \strong{\code{vcVec}}: Vector. Lower triangle of variance-covariance matrix stored in vector form (row-major order, if requested and available).
-\item \strong{\code{seBGW}}: Vector. Estimated standard errors for parameter estimates (if requested and available).
-\item \strong{\code{tstatBGW}}: Vector. Estimated t-statistics (versus 0, if requested and available).
-\item\strong{\code{indLevelGradients}}: Matrix. n-by-p matrix containing individual-level gradients computed at the final value of beta (if requested and available).
+\item \strong{\code{iterations}}: Numeric. Number of iterations used in MLE search.
+\item \strong{\code{functionEvals}}: Numeric. Number of function evaluations used in MLE search.
+  (This excludes function evaluations used by any finite-difference calculations for the gradient
+  and/or the vcHessian.)
+\item \strong{\code{gradient}}: Vector. The gradient of the negative log-likelihood, evaluated at
+  betaStop.
+\item \strong{\code{scaleVec}}: Vector. The scaling vector at the conclusion of the MLE search
+  (see scalingMethod in bgw_settings).
+\item \strong{\code{estimate}}: Vector. Parameter vector at the conclusion of the search (the
+  same as betaStop). It is always returned; it is the MLE only if the search converged
+  successfully (code 3, 4, 5 or 6; see code and message).
+\item \strong{\code{maximum}}: Numeric. Log-likelihood value at estimate (the same as finalLL).
+  It is always returned; it is the maximum of the log-likelihood only if the search converged
+  successfully.
+\item \strong{\code{hessianMethodAttemptedBGW}}: String. Requested method for computing vcHessian
+  (from bgw_settings).
+\item \strong{\code{hessianMethodUsedBGW}}: String. Method actually used for computing vcHessian.
+  If none was requested, this is "None"; if the matrix was singular, it is "N/A - BHHH Hessian is
+  singular".
+\item \strong{\code{vcHessianRecipCondBGW}}: Numeric. Estimated upper bound on the reciprocal
+  of the Euclidean condition number of vcHessian (if available); 0 corresponds to a singular
+  matrix. Set to -1 if unavailable. For a model object at betaStart (see
+  userRequestModelObject), this is the exact reciprocal condition number.
+\item \strong{\code{vcHessianConditionNumber}}: Numeric. Deprecated; the same value as
+  vcHessianRecipCondBGW (despite the name, a reciprocal). It will be removed in a future
+  version.
+\item \strong{\code{varcovBGW}}: Matrix. p-by-p matrix containing estimate of the
+  variance-covariance matrix (if requested and available).
+\item \strong{\code{vcVecBGW}}: Vector. Lower triangle of variance-covariance matrix stored in
+  vector form (row-major order, if requested and available).
+\item \strong{\code{seBGW}}: Vector. Estimated standard errors for parameter estimates (if
+  requested and available).
+\item \strong{\code{tstatBGW}}: Vector. Estimated t-statistics (versus 0, if requested and
+  available).
+\item\strong{\code{indLevelGradients}}: Matrix. n-by-p matrix whose row i is d log(R_i)/d beta,
+  computed at the final value of beta (if requested via userRequestIndLevelGradients).
 }
 }
 \description{
 Performs maximum likelihood estimation (MLE) for the user-provided model
-defined in \code{bgw_calcR}. Version 0.1.4.
+defined in \code{calcR}. Version 0.1.5.
 }
 \details{
-This function has been written to provide an R-based interface to Fortran estimation software published in
-Bunch, Gay and Welsch (1993), "Algorithm 717-Subroutines for Maximum Likelihood and Quasi-Likelihood
-Estimation of Parameters in Nonlinear Regression Models," ACM Transactions on Mathematical Software, 19 (1),
-March 1993, 109-130. The letters BGW will be used in various ways to denote the source of the
-estimation functionality.
+This function has been written to provide an R-based interface to Fortran estimation
+software published in Bunch, Gay and Welsch (1993), "Algorithm 717-Subroutines for Maximum
+Likelihood and Quasi-Likelihood Estimation of Parameters in Nonlinear Regression Models," ACM
+Transactions on Mathematical Software, 19 (1), March 1993, 109-130. The letters BGW will be used
+in various ways to denote the source of the estimation functionality.
 
-A primary motivation was to develop a more efficient maximum likelihood estimation function for use in
-the Apollo choice modelling package: see \url{https://www.apollochoicemodelling.com/}. However, we
-have adopted a design whereby the BGW package is wholly independent of Apollo, and can be
-used in a stand-alone fashion. Note also that the BGW Fortran subroutines are written to support
-general statistical estimation for an arbitrary objective/criterion function. So, although this
-version of the package is specifically written for MLE, the package may see future updates that
-expand the number of estimation options (for, e.g., nonlinear least squares, generalized method of
-moments, etc.).
+A primary motivation was to develop a more efficient maximum likelihood estimation function for
+use in the Apollo choice modelling package: see \url{https://www.apollochoicemodelling.com/}.
+However, we have adopted a design whereby the BGW package is wholly independent of Apollo, and
+can be used in a stand-alone fashion. Note also that the BGW Fortran subroutines are written to
+support general statistical estimation for an arbitrary objective/criterion function. So,
+although this version of the package is specifically written for MLE, the package may see future
+updates that expand the number of estimation options (for, e.g., nonlinear least squares,
+generalized method of moments, etc.).
 
 Remark: Following the convention in the numerical optimization literature, BGW minimizes the
 objective function. That is, bgw_mle minimizes the negative-log-likelihood for the model calcR.
+
+\subsection{Forms of the Jacobian (calcJ)}{
+calcJ must return a matrix (not a vector), in one of the following forms.
+
+\strong{Derivatives of probabilities.} Formally, the Jacobian (J) is an n x p matrix whose [i,k]
+element is dR_i/dbeta_k. The equivalent information can be provided as a p x n matrix (J
+transpose). Because these are derivatives of probabilities, if J is provided in either form, the
+user should also set \code{calcJ_type = "probability"}.
+
+\strong{Derivatives of log-probabilities.} Alternatively, J can be provided as an n x p matrix
+whose [i,k] element is d[log(R_i)]/dbeta_k, or, equivalently, the p x n matrix that is its
+transpose. In either case the user should set \code{calcJ_type = "log_probability"}.
+
+\strong{Orientation.} bgw identifies from the dimensions whether J is n x p or p x n. In the rare
+case where n = p, the dimensions cannot show this and the matrix is read as n x p, so a square
+matrix must be supplied in the n x p form.
+
+\strong{Version 0.1.4 and earlier.} In earlier versions of bgw, the assumed form for J was the
+n x p matrix with [i,k] element d[log(R_i)]/dbeta_k. To maintain backward compatibility, if
+calcJ_type is missing, bgw assumes that J contains derivatives of log(R_i). Because this cannot
+be verified from the matrix itself, a calcJ that returns derivatives of probabilities must be
+accompanied by \code{calcJ_type = "probability"}; otherwise the results will be wrong.
+}
 }

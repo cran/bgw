@@ -3,11 +3,123 @@ THIS IS THE CHANGELOG OF THE "bgw" PACKAGE
 Note that this approach to documenting changes could be changed, depending
 on advice or input from CRAN or others
 
+    CHANGES IN VERSION 0.1.5 (2026-11-10)
+
+  * [1] During a detailed review and testing using Apollo models and datasets,
+  the fact that the "finite difference" branch in bgw_mle.R had been modified
+  to exclude dynamic scaling factors was brought to light. This was a loose end
+  from the original development effort when we were not using dynamic scaling.
+  Dynamic scaling has now been restored in the finite-difference branch.
+
+  * [2] A new argument, calcJ_type, has been added to bgw_mle. It indicates what
+  the matrix returned by calcJ contains: "probability" (derivatives of R_i, the
+  model probabilities) or "log_probability" (derivatives of log(R_i)). Earlier
+  versions of bgw assumed derivatives of log(R_i), which is what Apollo provides.
+  To maintain backward compatibility, if calcJ is supplied without calcJ_type,
+  "log_probability" is assumed. The argument was added at the end of the
+  argument list, so existing calls are unaffected. With
+  calcJ_type = "probability", calcR is no longer called each time calcJ is
+  evaluated, which saves one likelihood evaluation per iteration.
+
+  * [3] The matrix returned by calcJ may now be either n x p or p x n; bgw
+  determines which from its dimensions. In the rare case n = p, the matrix is
+  read as n x p. If calcJ returns a vector, or a matrix of the wrong dimensions,
+  bgw stops with an error message. (Previously a p x n matrix would have been
+  silently misread.)
+
+  * [4] The documentation for calcJ has been corrected. Earlier versions stated
+  that calcJ should return a p x n matrix of derivatives of R, whereas the code
+  expected an n x p matrix of derivatives of log(R). See the new subsection
+  "Forms of the Jacobian (calcJ)" under Details in the help for bgw_mle.
+
+  * [5] The option bgw_settings[["userRequestIndLevelGradients"]] now returns an
+  n x p matrix whose row i is d log(R_i)/d beta at the final value of beta. It
+  is available with both analytic (calcJ) and finite-difference derivatives,
+  and requesting it does not affect the estimates or other results.
+
+  * [6] Based on numerical testing, we have changed the default starting values
+  for the scaling vector to be a vector of ones in the case where analytic
+  derivatives are available.
+
+  * [7] Bug fix: with finite-difference derivatives and a named betaStart, the
+  last element of the returned estimate could be perturbed by the
+  finite-difference step size (a relative error of about 1e-8).
+
+  * [8] Minor documentation corrections: the stated defaults for maxIterations
+  (200) and maxFunctionEvals (300) now match the values used by bgw. The help
+  for the returned values estimate and maximum now states that they are always
+  returned; whether the search converged is indicated by code and message.
+
+  * [9] Only bgw_mle is now exported. The other R functions in the package
+  (bgw_mle_setup, bgw_drglg, bgw_itsum, bgw_checkSetting, bgw_writeIterations)
+  are internal and no longer have help pages. They were never intended to be
+  called directly by users.
+
+  * [10] Minor bug fixes in bgw_mle: supplying only invalid setting names in
+  bgw_settings no longer causes an internal error; the message for an invalid
+  setting value now shows the default value that will be used (previously it
+  repeated the invalid value); and hessianMethodAttempted, described in the
+  help, is now included in the returned model object.
+
+  * [11] Bug fix: the Fortran code could overwrite R objects in place. With an
+  unnamed betaStart, the starting values held by the caller could be replaced
+  by the estimates (most often when calcJ was supplied), so that a later run
+  reusing the same vector would start from those estimates, and the returned
+  betaStart could also be wrong. The Fortran now works on private copies of
+  its arrays. A named betaStart, which is what Apollo provides, was not
+  affected.
+
+  * [12] Values of maxIterations or maxFunctionEvals too large to be held as an
+  integer (above 2,147,483,647, or Inf) are now rejected with an error message.
+  In addition, bgw now stops with an error message if a model is too large for
+  the work vector v to be indexed by an integer.
+
+  * [13] New option bgw_settings[["userRequestModelObject"]]. If TRUE, or if
+  maxIterations is 0, no estimation is performed and a model object evaluated
+  at betaStart is returned, with code 20 and a variance-covariance matrix based
+  on the BHHH matrix (NULL if singular). vcHessianMethod must be "bhhh" or
+  "none" in this case.
+
+  * [14] Some returned values were renamed. vcHessianConditionNumber was
+  misnamed, since it is the reciprocal of the condition number; it is now
+  vcHessianRecipCondBGW. The old name remains for now, but is deprecated. vcVec
+  and hessianMethodUsed are now vcVecBGW and hessianMethodUsedBGW, and
+  hessianMethodAttempted (new in this version) is hessianMethodAttemptedBGW.
+  The printed description of this quantity was corrected in the same way.
+
+  * [15] New options writeIterGradient and writeIterScaleVec write the gradient
+  of the log-likelihood and the scale vector at each iteration to
+  "modelName_gradients.csv" and "modelName_scaleVecs.csv", respectively. These
+  and "modelName_iterations.csv" now share one layout: the parameter names (or
+  beta1, beta2, ...), logLike, and two new columns, Iteration and ItType.
+  Appending to an existing file written in the old layout keeps that layout.
+
+  * [16] Bug fixes: writeIter no longer fails when betaStart has no names, and
+  printing no longer fails when a gradient cannot be computed. When estimation
+  fails at the start, for example because the gradient cannot be computed, the
+  returned code and message now identify the failure, and the returned
+  log-likelihood is its value at betaStart (previously it was 0).
+
+  * [17] Bug fixes for failed evaluations. If calcJ returned NA, NaN or Inf,
+  even in a single element, bgw did not stop, but evaluated calcR until the
+  function evaluation limit was reached. It now stops with code 65 ("Gradient
+  could not be computed"). If the gradient cannot be computed after the start
+  (with calcJ, or when finite-difference steps fail in both directions), the
+  last iterate at which it could be computed is returned, with its
+  log-likelihood, gradient and scale vector. Previously, with finite
+  differences, the new point was returned together with the log-likelihood of
+  the previous one. The iteration files contain no row for such an iterate. In
+  addition, calcR is now rejected at betaStart if it returns Inf or a value
+  <= 0, not only NA or NaN, and during the search Inf and negative values are
+  treated in the same way as NA.
+
     CHANGES IN VERSION 0.1.4 (2026-02-03)
 
   * [1] An option was added to bgw_settings to allow the user to request that
   individual-level gradients at the final value of beta be returned with the
-  model. The default is FALSE.
+  model. By this, we mean a p x n matrix that contains elements of the form
+  dlog_lik_j/dBeta_i, where j indexes columns and i indexes rows.
+  The default is FALSE.
 
   * [2] Some of the items in the bgw_message_table were modified by
   appending the terms '(favorable)' or '(unfavorable)' to clarify for the user

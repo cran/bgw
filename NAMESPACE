@@ -1,4 +1,4 @@
 useDynLib(bgw, .registration=TRUE)
-exportPattern("^[[:alpha:]]+")
+export(bgw_mle)
 importFrom("utils", "write.csv")
 importFrom("utils", "capture.output")

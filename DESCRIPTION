@@ -1,7 +1,7 @@
 Package: bgw
 Type: Package
 Title: Bunch-Gay-Welsch Statistical Estimation
-Version: 0.1.4
+Version: 0.1.5
 Authors@R: c(
     person("David S.", "Bunch", email="dsbunch@ucdavis.edu", role=c("aut","cre"),
     comment=c(ORCID="0000-0001-8728-7072")),
@@ -30,7 +30,7 @@ Description: Performs statistical estimation and inference-related computations
    was to provide fast, efficient, and reliable MLE for discrete choice models 
    that can be called from the 'Apollo' choice modelling 'R' package ( 
    see <https://www.apollochoicemodelling.com>). Starting with the release of 
-   Apollo 3.0, BGW is the default estimation package. However, estimation can also 
+   Apollo 0.3.0, BGW is the default estimation package. However, estimation can also 
    be performed using BGW in a stand-alone fashion without using 'Apollo' 
    (as shown in simple examples included in the package). Note also that BGW 
    capabilities are not limited to MLE, and future extension to other estimators 
@@ -46,7 +46,6 @@ NeedsCompilation: yes
 Depends: R (>= 4.0.0)
 Suggests: knitr, rmarkdown, testthat (>= 3.0.0),
 VignetteBuilder: knitr
-RoxygenNote: 7.3.3
 Author: David S. Bunch [aut, cre] (ORCID:
     <https://orcid.org/0000-0001-8728-7072>),
   David M. Gay [ctb],
@@ -54,6 +53,7 @@ Author: David S. Bunch [aut, cre] (ORCID:
   Stephane Hess [ctb],
   David Palma [ctb]
 Config/testthat/edition: 3
-Packaged: 2026-02-04 01:21:04 UTC; dsbunch
+Config/roxygen2/version: 8.1.1
+Packaged: 2026-11-10 21:24:21 UTC; dsbunch
 Repository: CRAN
-Date/Publication: 2026-02-04 06:40:39 UTC
+Date/Publication: 2026-11-10 22:20:17 UTC
